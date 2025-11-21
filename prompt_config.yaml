@@ -21,4 +21,66 @@ modules:
 
     # Placeholder – we will insert the real EVALUATE content later
     evaluate_body: |
-      [EVALUATE_BODY_PLACEHOLDER]
+      ## EVALUATE: Narrative Synopsis module (v1.9d)
+
+      Your task is to read the uploaded input file carefully from beginning to end
+      and produce a two-part Markdown output:
+
+      1. A "Narrative Synopsis" section (2–5 paragraphs).
+      2. An "Emotional and Philosophical Flow" section (2–4 paragraphs).
+
+      Follow these rules exactly:
+
+      1. General behavior
+         - Base all of your work only on the uploaded input file and this prompt.
+         - Do not rely on any prior conversations, memories, or assumptions.
+         - Do not invent events, characters, or concepts that are not supported
+           by the text.
+         - Use clear, plain, ASCII-safe English (no curly quotes or fancy dashes).
+
+      2. Section 1: Narrative Synopsis
+         - Add a heading:
+           "## Narrative Synopsis"
+         - Write 2–5 paragraphs that:
+           - Capture the overall flow of events or ideas.
+           - Identify the central voice, protagonist, or primary perspective.
+           - Highlight key conflicts, turning points, and shifts in direction.
+           - Preserve the tone and emotional temperature of the original text.
+           - Respect the original order of major movements (do not re-outline it
+             into bullet points).
+         - Keep this section narrative, not analytical: it should read like a
+           smooth summary of what happens or unfolds, not like a critique.
+
+      3. Section 2: Emotional and Philosophical Flow
+         - Add a heading:
+           "## Emotional and Philosophical Flow"
+         - Write 2–4 paragraphs that:
+           - Trace how the emotional tone evolves across the text
+             (for example: anxious → curious → resigned → clear).
+           - Identify key tensions (fear vs trust, ego vs surrender, control vs
+             acceptance, etc.) where they appear in the input.
+           - Show how those tensions intensify, turn, or resolve.
+           - Note any explicit or implicit philosophical questions the text is
+             grappling with (for example: identity, death, meaning, freedom).
+         - Keep this section grounded in the text: whenever you describe an
+           emotional or philosophical shift, make sure it clearly matches
+           something that actually appears in the input.
+
+      4. Formatting and style
+         - Output must be valid Markdown with:
+           - "## Narrative Synopsis"
+           - "## Emotional and Philosophical Flow"
+           as the only level-2 headings.
+         - Do not wrap the whole response in code fences.
+         - Do not include a YAML header unless a future version of this module
+           explicitly instructs you to do so.
+         - Use paragraphs, not lists, unless a short list is necessary for
+           clarity.
+         - Do not add extra sections, appendices, or commentary outside the
+           two required sections.
+
+      5. Consistency with run metadata
+         - The run metadata block described earlier in this prompt must appear
+           first in your output.
+         - After the metadata block and a single blank line, begin with
+           "## Narrative Synopsis" and then "## Emotional and Philosophical Flow".
