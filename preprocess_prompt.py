@@ -1,273 +1,213 @@
 #!/usr/bin/env python3
 """
-Script: preprocess_prompt.py
-Description: Spec-aligned prompt renderer for the writing workflow.
-Version: (see SCRIPT_VERSION below)
+preprocess_prompt.py v0.2.2
 
-Purpose:
-  - Contain the master prompt template text internally (TEMPLATE).
-  - Read prompt_config.yaml for:
-        module, author, output_path.
-  - Substitute placeholders inside TEMPLATE.
-  - Emit a fully rendered prompt either to:
-        - an explicit -o/--output file, or
-        - by default: [module]_Prompt.txt
+Compile a module prompt from:
+- prompt_config.yaml
+- prompts/TEMPLATE_v1.9d.txt
+- an input file (for basename only)
 
-This script is aligned with the Prompt Execution Spec (see SPEC_VERSION below):
-  - Required sections in this order:
-      YAML HEADER
-      PROCESS INSTRUCTIONS (including Step 3.5 Metadata Template)
-      NOTES
-      EVALUATE BLOCK
-  - EVALUATE explicitly instructs the assistant to:
-      1) prepend the metadata block defined in Step 3.5, and
-      2) then generate only the sections specified there.
-
-Placeholders supported (header + body):
-  [MODULE]          or {{ MODULE }}
-  [AUTHOR]          or {{ AUTHOR }}
-  [OUTPUT_PATH]     or {{ OUTPUT_PATH }}
-  [PROMPT_VERSION]  or {{ PROMPT_VERSION }}
+Phase 1: single-file, Narrative_Synopsis-only module.
 """
 
-from pathlib import Path
+from __future__ import annotations
+
 import argparse
+from pathlib import Path
+from typing import Dict, Any
 
-try:
-    import yaml
-except ImportError:
-    yaml = None
-
-SCRIPT_NAME = Path(__file__).name
-SCRIPT_VERSION = "0.2.1"
-
-SPEC_NAME = "Prompt Execution Spec"
-SPEC_VERSION = "0.2.1"
-SPEC_LABEL = f"{SPEC_NAME} v{SPEC_VERSION}"
-
-PROMPT_VERSION = "v1.9c"  # canonical version of the embedded template
-
-DEFAULT_CONFIG_NAME = "prompt_config.yaml"
+import yaml
 
 
-# --------------------------------------------------------------------
-# MASTER TEMPLATE (spec-compliant, Narrative_Synopsis-flavored module)
-# --------------------------------------------------------------------
-TEMPLATE = """# [MODULE] Prompt ([PROMPT_VERSION])
-
----
-title: "[basename] - [MODULE]"
-author: "[AUTHOR]"
-module: "[MODULE]"
-source_file: "(filled automatically at runtime)"
-output_file: "(filled automatically at runtime)"
-output_path: "[OUTPUT_PATH]"
-date: "(filled automatically at runtime)"
-date_generated: "(filled automatically at runtime)"
-feedback:
-  mode: "inline"
-  verbosity: "concise"
-summary: >
-  Generates a cohesive, emotionally resonant analysis of the uploaded text
-  according to the logic defined in the [MODULE] prompt.
----
-
-PROCESS INSTRUCTIONS
-
-1. Prompt the user to upload exactly one .txt file.
-
-2. Prompt once for author name (blank -> "unknown").
-   This step MUST be executed every time the prompt is run.
-
-3. Process the uploaded file and fill metadata at runtime:
-   - title = "[basename] - [MODULE]"
-   - author = (captured from prompt or defaults to "unknown")
-   - source_file = "(absolute path of uploaded input file)"
-   - output_file = "[basename]_[MODULE].md"
-   - date = current local date at runtime
-   - date_generated = full ISO timestamp at runtime.
-
-All placeholders for these fields must be resolved at runtime before E-MODE output begins.
-
-3.5. Prepend Metadata Block
-
----
-title: "[basename] - [MODULE]"
-author: "(captured author name)"
-module: "[MODULE]"
-source_file: "(absolute path of uploaded input file)"
-output_file: "[basename]_[MODULE].md"
-output_path: "[OUTPUT_PATH]"
-date: "(current local date)"
-date_generated: "(full ISO timestamp)"
-feedback:
-  mode: "inline"
-  verbosity: "concise"
-summary: >
-  Generates a cohesive, emotionally resonant analysis of the uploaded text,
-  following the logic defined by the [MODULE] prompt.
----
-
-# Output File Naming Convention
-# [basename]_[MODULE].md
-
-NOTES
-
-- Output format: Markdown with a YAML header.
-- ASCII-only punctuation and headings (##, ###).
-- The prepended metadata block must be the first content in the final output.
-
----
-EVALUATE: |
-  First, prepend the full YAML metadata block defined in Step 3.5 above,
-  substituting runtime values for:
-    - [basename]
-    - [MODULE]
-    - [OUTPUT_PATH]
-    - captured author name
-    - absolute path of uploaded input file
-    - current local date
-    - full ISO timestamp
-
-  Then, after the metadata block, produce the following sections:
-
-  1. Narrative Synopsis (2-5 paragraphs)
-     Provide a cohesive, emotionally resonant narrative synopsis tracing
-     the story's flow, tone, and emotional progression.
-
-  2. Emotional and Philosophical Flow (1-2 paragraphs)
-     Describe how the emotional and philosophical insights evolve through
-     the text.
----
-"""
+PROJECT_ROOT = Path(__file__).resolve().parent
+CONFIG_PATH = PROJECT_ROOT / "prompt_config.yaml"
+TEMPLATE_PATH = PROJECT_ROOT / "prompts" / "TEMPLATE_v1.9d.txt"
 
 
-# --------------------------------------------------------------------
-def load_config(config_path: Path) -> dict:
-    """Load YAML config (module, author, output_path)."""
-    if not config_path.exists():
-        raise FileNotFoundError(f"Config file not found: {config_path}")
-    if yaml is None:
-        raise RuntimeError("PyYAML is required to load prompt_config.yaml (missing PyYAML).")
-
-    with config_path.open("r", encoding="utf-8") as f:
+def load_config() -> Dict[str, Any]:
+    """Load YAML config from prompt_config.yaml."""
+    if not CONFIG_PATH.is_file():
+        raise SystemExit(f"Config file not found: {CONFIG_PATH}")
+    with CONFIG_PATH.open("r", encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
-
+    # minimal shape checks
+    if "defaults" not in data or "modules" not in data:
+        raise SystemExit("Config missing required top-level keys: defaults, modules")
     return data
 
-def debug_print(msg: str, debug_enabled: bool):
-    """Print a debug message only if --debug is enabled."""
-    if debug_enabled:
-        print(f"[{SCRIPT_NAME} v{SCRIPT_VERSION} DEBUG] {msg}", flush=True)
 
-def validate_config(cfg: dict) -> None:
-    """Ensure required keys are present and non-empty.
+def load_template() -> str:
+    """Load the base prompt template."""
+    if not TEMPLATE_PATH.is_file():
+        raise SystemExit(f"Template file not found: {TEMPLATE_PATH}")
+    return TEMPLATE_PATH.read_text(encoding="utf-8")
 
-    Required keys:
-      - module
-      - author
-      - output_path
+
+def build_prompt(input_file: Path, config: Dict[str, Any]) -> str:
     """
-    required = ["module", "author", "output_path"]
-    missing = [key for key in required if not cfg.get(key)]
-    if missing:
-        missing_str = ", ".join(missing)
-        raise RuntimeError(
-            f"prompt_config.yaml is missing required key(s): {missing_str}. "
-            "All of these must be defined for a spec-compliant prompt."
-        )
+    Build the compiled prompt for the given input file.
 
-def apply_replacements(text: str, cfg: dict) -> str:
-    """Perform placeholder substitution using values from cfg."""
-    replacements = {
-        "[MODULE]": cfg.get("module", ""),
-        "{{ MODULE }}": cfg.get("module", ""),
+    Phase 1 assumptions:
+    - Single module: config['defaults']['module'] (Narrative_Synopsis)
+    - One input file; we only use its basename.
+    """
+    if not input_file.is_file():
+        raise SystemExit(f"Input file not found: {input_file}")
 
-        "[AUTHOR]": cfg.get("author", ""),
-        "{{ AUTHOR }}": cfg.get("author", ""),
+    defaults = config.get("defaults", {})
+    modules = config.get("modules", {})
 
-        "[OUTPUT_PATH]": cfg.get("output_path", ""),
-        "{{ OUTPUT_PATH }}": cfg.get("output_path", ""),
+    module_name = defaults.get("module")
+    if not module_name:
+        raise SystemExit("defaults.module is not set in prompt_config.yaml")
 
-        "[PROMPT_VERSION]": PROMPT_VERSION,
-        "{{ PROMPT_VERSION }}": PROMPT_VERSION,
+    if module_name not in modules:
+        raise SystemExit(f"Module '{module_name}' not found in config.modules")
+
+    module_cfg = modules[module_name]
+
+    author = defaults.get("author", "Unknown")
+    output_path = defaults.get("output_path", str(PROJECT_ROOT))
+    prompt_version = defaults.get("prompt_version", "v0.0.0")
+    spec_version = defaults.get("spec_version", "0.0.0")
+    script_version = defaults.get("script_version", "0.0.0")
+
+    evaluate_body = module_cfg.get("evaluate_body", "").rstrip()
+    if not evaluate_body:
+        raise SystemExit(f"modules.{module_name}.evaluate_body is empty in config")
+
+    basename = input_file.stem
+    output_filename = f"{basename}_{module_name}.md"
+
+    template_text = load_template()
+
+    substitutions = {
+        "[MODULE]": module_name,
+        "[AUTHOR]": author,
+        "[BASENAME]": basename,
+        "[OUTPUT_PATH]": output_path,
+        "[OUTPUT_FILENAME]": output_filename,
+        "[PROMPT_VERSION]": prompt_version,
+        "[SPEC_VERSION]": spec_version,
+        "[SCRIPT_VERSION]": script_version,
     }
 
-    for token, value in replacements.items():
-        text = text.replace(token, value)
+    for placeholder, value in substitutions.items():
+        template_text = template_text.replace(placeholder, value)
 
-    return text
+    # Insert module-specific EVALUATE body
+    template_text = template_text.replace("<<<EVALUATE_BODY>>>", evaluate_body)
+
+    validate_compiled_prompt(template_text, module_name, basename, output_filename, output_path)
+
+    return template_text
 
 
-def main(argv=None):
+def validate_compiled_prompt(
+    text: str,
+    module_name: str,
+    basename: str,
+    output_filename: str,
+    output_path: str,
+) -> None:
+    """
+    Spec check for v0.2.2.
+
+    - No unresolved placeholders.
+    - No leftover EVALUATE_BODY marker.
+    - Run metadata block present.
+    - Required identity lines present.
+    - Required section headings for Narrative_Synopsis present.
+    """
+    # 1. No unresolved placeholders
+    unresolved_tokens = [
+        "[MODULE]",
+        "[AUTHOR]",
+        "[BASENAME]",
+        "[OUTPUT_PATH]",
+        "[OUTPUT_FILENAME]",
+        "[PROMPT_VERSION]",
+        "[SPEC_VERSION]",
+        "[SCRIPT_VERSION]",
+        "<<<EVALUATE_BODY>>>",
+    ]
+
+    leftovers = [tok for tok in unresolved_tokens if tok in text]
+    if leftovers:
+        raise SystemExit(
+            "SpecViolation: unresolved placeholders in compiled prompt: "
+            + ", ".join(leftovers)
+        )
+
+    # 2. Required identity / metadata fragments
+    must_contain = [
+        f"Module: {module_name}",
+        f"Input basename: {basename}",
+        f"Recommended output filename: {output_filename}",
+        f"Recommended output path: {output_path}",
+        "Run metadata:",
+        f"- Module: {module_name}",
+        f"- Input basename: {basename}",
+        f"- Recommended output filename: {output_filename}",
+        f"- Recommended output path: {output_path}",
+    ]
+
+    missing = [frag for frag in must_contain if frag not in text]
+    if missing:
+        raise SystemExit(
+            "SpecViolation: compiled prompt missing required fragments:\n"
+            + "\n".join(f"- {m}" for m in missing)
+        )
+
+    # 3. Module-specific structure checks (Narrative_Synopsis)
+    if module_name == "Narrative_Synopsis":
+        required_headings = [
+            "## Narrative Synopsis",
+            "## Emotional and Philosophical Flow",
+        ]
+        missing_headings = [h for h in required_headings if h not in text]
+        if missing_headings:
+            raise SystemExit(
+                "SpecViolation: compiled prompt missing required section headings:\n"
+                + "\n".join(f"- {h}" for h in missing_headings)
+            )
+
+
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Render embedded prompt template (spec v0.2.1-aligned)."
+        description="Compile a module prompt from template and YAML config (v0.2.2).",
     )
     parser.add_argument(
-        "--module",
-        help="Name of the module to run (narrative, outline, characters, synthesis).",
-    )
-    parser.add_argument(
-        "--input",
-        help="Path to the input text file.",
-    )
-    parser.add_argument(
-        "-c",
-        "--config",
-        help=f"Path to config YAML (default: {DEFAULT_CONFIG_NAME} in current directory).",
+        "input_file",
+        help="Path to the input text file (used only to derive the basename).",
     )
     parser.add_argument(
         "-o",
-        "--output",
-        help="Output file path. Defaults to [module]_Prompt.txt.",
+        "--out",
+        dest="output_file",
+        help=(
+            "Path to write the compiled prompt. "
+            "Defaults to <basename>_compiled_prompt.txt in the current working directory."
+        ),
     )
-    parser.add_argument(
-        "--debug",
-        action="store_true",
-        help="Enable debug output.",
-    )
-    parser.add_argument(
-        "--version",
-        action="store_true",
-        help="Print script version and exit.",
-    )
-    args = parser.parse_args(argv)
+    return parser.parse_args()
 
-    # Handle --version
-    if args.version:
-        print(f"{SCRIPT_NAME} v{SCRIPT_VERSION}", flush=True)
-        print(f"[{SCRIPT_NAME}] Using {SPEC_LABEL}", flush=True)
-        return 0
 
-    # Version banner for normal runs
-    print(f"[{SCRIPT_NAME} v{SCRIPT_VERSION}] Starting run", flush=True)
-    print(f"[{SCRIPT_NAME}] Using {SPEC_LABEL}", flush=True)
+def main() -> None:
+    args = parse_args()
 
-    # Determine config path
-    if args.config:
-        config_path = Path(args.config)
+    input_path = Path(args.input_file).expanduser().resolve()
+    config = load_config()
+
+    compiled_prompt = build_prompt(input_path, config)
+
+    if args.output_file:
+        out_path = Path(args.output_file).expanduser().resolve()
     else:
-        config_path = Path.cwd() / DEFAULT_CONFIG_NAME
-    debug_print(f"config_path = {config_path}", args.debug)
+        out_path = Path.cwd() / f"{input_path.stem}_compiled_prompt.txt"
 
-    cfg = load_config(config_path)
-    validate_config(cfg)
-
-    # Render the template
-    rendered = apply_replacements(TEMPLATE, cfg)
-
-    # Determine output path
-    module_name = cfg.get("module", "Prompt")
-    default_output = Path.cwd() / f"{module_name}_Prompt.txt"
-
-    if args.output:
-        out_path = Path(args.output)
-    else:
-        out_path = Path(default_output)
-    debug_print(f"out_path = {out_path}", args.debug)
-
-    out_path.write_text(rendered, encoding="utf-8")
-    print(f"Rendered prompt written to: {out_path}")
+    out_path.write_text(compiled_prompt, encoding="utf-8")
+    print(f"Wrote compiled prompt to: {out_path}")
 
 
 if __name__ == "__main__":
