@@ -14,10 +14,9 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
 import yaml
-
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 CONFIG_PATH = PROJECT_ROOT / "prompt_config.yaml"
@@ -105,7 +104,9 @@ def build_prompt(
     # Insert module-specific EVALUATE body
     template_text = template_text.replace("<<<EVALUATE_BODY>>>", evaluate_body)
 
-    validate_compiled_prompt(template_text, module_name, basename, output_filename, output_path)
+    validate_compiled_prompt(
+        template_text, module_name, basename, output_filename, output_path
+    )
 
     return template_text
 
@@ -203,7 +204,7 @@ def parse_args() -> argparse.Namespace:
         help=(
             "Override the default output_path from YAML "
             "(where the recommended output file should be saved)."
-        )
+        ),
     )
     return parser.parse_args()
 
@@ -215,11 +216,8 @@ def main() -> None:
     config = load_config()
 
     compiled_prompt = build_prompt(
-        input_path,
-        config,
-        override_output_path=args.override_output_path
+        input_path, config, override_output_path=args.override_output_path
     )
-
 
     if args.output_file:
         out_path = Path(args.output_file).expanduser().resolve()

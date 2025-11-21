@@ -1,0 +1,17 @@
+repos:
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        name: isort (Python import sorter)
+        args: ["--profile", "black"]
+        files: "\\.py$"
+
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+        name: black (Python code formatter)
+        language_version: python3
+        files: "\\.py$"
+

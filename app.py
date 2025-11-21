@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
-from pathlib import Path
 import subprocess
+from pathlib import Path
+
+from flask import Flask, flash, redirect, render_template, request, url_for
 
 app = Flask(__name__)
 app.secret_key = "change-me"
@@ -45,18 +46,15 @@ def index():
             flash(f"Input file not found: {input_path}")
             return redirect(url_for("index"))
 
-        cmd = [
-            "python3",
-            "preprocess_prompt.py"
-        ]
-        if debug_enabled:              # NEW
+        cmd = ["python3", "preprocess_prompt.py"]
+        if debug_enabled:  # NEW
             cmd.append("--debug")
-        #,
+        # ,
         #    "--module",
         #    module,
         #    "--input",
         #    str(input_path),
-        #]
+        # ]
 
         try:
             result = subprocess.run(
