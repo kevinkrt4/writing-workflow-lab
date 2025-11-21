@@ -43,7 +43,11 @@ def load_template() -> str:
     return TEMPLATE_PATH.read_text(encoding="utf-8")
 
 
-def build_prompt(input_file: Path, config: Dict[str, Any]) -> str:
+def build_prompt(
+    input_file: Path,
+    config: Dict[str, Any],
+    override_output_path: str | None = None,
+) -> str:
     """
     Build the compiled prompt for the given input file.
 
@@ -67,7 +71,10 @@ def build_prompt(input_file: Path, config: Dict[str, Any]) -> str:
     module_cfg = modules[module_name]
 
     author = defaults.get("author", "Unknown")
-    output_path = defaults.get("output_path", str(PROJECT_ROOT))
+    if override_output_path:
+        output_path = Path(override_output_path).expanduser().resolve().as_posix()
+    else:
+        output_path = defaults.get("output_path", str(PROJECT_ROOT))
     prompt_version = defaults.get("prompt_version", "v0.0.0")
     spec_version = defaults.get("spec_version", "0.0.0")
     script_version = defaults.get("script_version", "0.0.0")
@@ -190,6 +197,14 @@ def parse_args() -> argparse.Namespace:
             "Defaults to <basename>_compiled_prompt.txt in the current working directory."
         ),
     )
+    parser.add_argument(
+        "--output-path",
+        dest="override_output_path",
+        help=(
+            "Override the default output_path from YAML "
+            "(where the recommended output file should be saved)."
+        )
+    )
     return parser.parse_args()
 
 
@@ -199,7 +214,12 @@ def main() -> None:
     input_path = Path(args.input_file).expanduser().resolve()
     config = load_config()
 
-    compiled_prompt = build_prompt(input_path, config)
+    compiled_prompt = build_prompt(
+        input_path,
+        config,
+        override_output_path=args.override_output_path
+    )
+
 
     if args.output_file:
         out_path = Path(args.output_file).expanduser().resolve()
