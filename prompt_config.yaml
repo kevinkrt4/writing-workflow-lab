@@ -1,16 +1,24 @@
-# prompt_config.yaml
-#
-# Runtime configuration for rendering a specific prompt from the internal
-# master template defined in preprocess_prompt.py.
-#
-# preprocess_prompt.py will read these values and substitute them into
-# placeholders inside the embedded template.
-#
-# Keys:
-#   module         : Logical module name, e.g. "Narrative_Synopsis" or "Outline_Synopsis"
-#   author         : Human-readable author name
-#   output_path    : Intended output path on the local filesystem
+defaults:
+  # Only one module for now
+  module: "Narrative_Synopsis"
 
-module: "Narrative_Synopsis"
-author: "Kevin Thompson"
-output_path: "/Users/kevinthompson/Downloads"
+  # Default author tag embedded in metadata
+  author: "Kevin"
+
+  # Where the recommended output file will go
+  output_path: "/Users/kevnthompson/Downloads"
+
+  # Versioning – single source of truth
+  prompt_version: "v1.9d"
+  spec_version: "0.2.2"
+  script_version: "0.2.2"
+
+modules:
+  Narrative_Synopsis:
+    description: >
+      Generate a narrative synopsis focusing on flow, tone, narrative arc, and
+      the emotional progression of the material.
+
+    # Placeholder – we will insert the real EVALUATE content later
+    evaluate_body: |
+      [EVALUATE_BODY_PLACEHOLDER]
