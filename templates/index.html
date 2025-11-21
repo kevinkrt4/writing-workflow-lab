@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Prompt Control Panel</h1>
+
+  <form method="post">
+
+    <div class="field">
+      <label>Module</label>
+      <select name="module">
+        <option value="">-- choose --</option>
+        {% for value, label in modules %}
+          <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Input file</label>
+      <select name="input_file">
+        <option value="">-- choose --</option>
+        {% for f in files %}
+          <option value="{{ f }}">{{ f }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Debug checkbox -->
+    <div class="field">
+      <label>
+        <input type="checkbox" name="debug" {% if debug %}checked{% endif %}>
+        Debug
+      </label>
+    </div>
+
+    <button type="submit">Run</button>
+
+  </form>
+
+  {% if logs %}
+    <h2>Logs</h2>
+    <pre class="logs">{{ logs }}</pre>
+  {% endif %}
+{% endblock %}

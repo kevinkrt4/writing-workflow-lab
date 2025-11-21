@@ -1,0 +1,16 @@
+# prompt_config.yaml
+#
+# Runtime configuration for rendering a specific prompt from the internal
+# master template defined in preprocess_prompt.py.
+#
+# preprocess_prompt.py will read these values and substitute them into
+# placeholders inside the embedded template.
+#
+# Keys:
+#   module         : Logical module name, e.g. "Narrative_Synopsis" or "Outline_Synopsis"
+#   author         : Human-readable author name
+#   output_path    : Intended output path on the local filesystem
+
+module: "Narrative_Synopsis"
+author: "Kevin Thompson"
+output_path: "/Users/kevinthompson/Downloads"
