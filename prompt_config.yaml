@@ -1,12 +1,9 @@
 defaults:
-  # Only one module for now
-  module: "Narrative_Synopsis"
-
   # Default author tag embedded in metadata
   author: "Kevin"
 
-  # Where the recommended output file will go
-  output_path: "/Users/kevnthompson/Downloads"
+  # Default output path 
+  output_path: "/Users/kevinthompson/Downloads"
 
   # Versioning – single source of truth
   prompt_version: "v1.9d"
@@ -19,7 +16,6 @@ modules:
       Generate a narrative synopsis focusing on flow, tone, narrative arc, and
       the emotional progression of the material.
 
-    # Placeholder – we will insert the real EVALUATE content later
     evaluate_body: |
       ## EVALUATE: Narrative Synopsis module (v1.9d)
 

@@ -6,8 +6,12 @@ from flask import Flask, flash, redirect, render_template, request, url_for
 app = Flask(__name__)
 app.secret_key = "change-me"
 
-# Path to your draft notebook files
-WORKFLOWS_DIR = Path.home() / "Documents" / "GitHub" / "webwork" / "drafts"
+# -------------------------------------------------------------
+# Draft notebooks live inside this repo: writing-workflow-lab/drafts
+# -------------------------------------------------------------
+APP_DIR = Path(__file__).resolve().parent
+DRAFTS_DIR = APP_DIR / "drafts"
+# -------------------------------------------------------------
 
 MODULES = [
     ("narrative", "001 - Narrative Synopsis"),
@@ -18,13 +22,12 @@ MODULES = [
 
 
 def list_available_files():
-    """Return .txt and .md files in the WORKFLOWS_DIR directory."""
-    if not WORKFLOWS_DIR.exists():
+    """Return .txt and .md files in the DRAFTS_DIR directory."""
+    if not DRAFTS_DIR.exists():
         return []
 
     files = []
-    files.extend(WORKFLOWS_DIR.glob("*.txt"))
-    files.extend(WORKFLOWS_DIR.glob("*.md"))
+    files.extend(DRAFTS_DIR.glob("*.txt"))
 
     return sorted([p.name for p in files], key=str)
 
@@ -40,7 +43,7 @@ def index():
             flash("Please choose both a module and an input file.")
             return redirect(url_for("index"))
 
-        input_path = (WORKFLOWS_DIR / input_file).resolve()
+        input_path = (DRAFTS_DIR / input_file).resolve()
 
         if not input_path.exists():
             flash(f"Input file not found: {input_path}")
