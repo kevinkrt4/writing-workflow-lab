@@ -1,2 +1,6 @@
 .DS_Store
 *_compiled_prompt.txt
+
+# Python cache
+__pycache__/
+*.pyc
