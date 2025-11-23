@@ -54,15 +54,22 @@ def build_prompt(
     Build the compiled prompt for the given input file and module.
 
     Inputs:
-    - input_file: full path to the input text file.
+    - input_file: full path to the input text file. The caller is responsible for
+      validating that the file exists.
     - module_name: name of the module to use (must exist in config["modules"]).
     - config: loaded YAML configuration.
     - override_output_path: optional string path to override the metadata output path.
 
     Behavior:
-    - Reads the full input path.
     - Uses only the basename of the file when generating metadata and output filenames.
     - Module behavior and EVALUATE body are loaded from config["modules"][module_name].
+    - Returns the compiled prompt text as a single string.
+
+    Raises:
+    - PromptConfigError: if the module is missing in config["modules"], the
+      evaluate_body is empty, or required defaults are missing.
+    - PromptValidationError: if the compiled prompt fails spec checks
+      (unresolved placeholders, missing fragments/headings, etc.).
     """
 
     defaults = config.get("defaults", {})
@@ -125,7 +132,16 @@ def build_prompt(
 
 
 def load_config() -> Dict[str, Any]:
-    """Load YAML config from prompt_config.yaml."""
+    """
+    Load YAML config from prompt_config.yaml.
+
+    Returns:
+    - A dict with at least two top-level keys: "defaults" and "modules".
+
+    Raises:
+    - PromptConfigError: if the config file is missing or does not contain the
+      required top-level keys.
+    """
     if not CONFIG_PATH.is_file():
         raise PromptConfigError(f"Config file not found: {CONFIG_PATH}")
     with CONFIG_PATH.open("r", encoding="utf-8") as f:
@@ -147,11 +163,16 @@ def validate_compiled_prompt(
     """
     Spec check for v0.2.2.
 
+    Validates that the compiled prompt text conforms to the current spec:
+
     - No unresolved placeholders.
     - No leftover EVALUATE_BODY marker.
     - Run metadata block present.
     - Required identity lines present.
-    - Required section headings for Narrative_Synopsis present.
+    - Required section headings for certain modules (e.g. Narrative_Synopsis).
+
+    Raises:
+    - PromptValidationError: if any of the above checks fail.
     """
     unresolved_tokens = [
         "[MODULE]",
@@ -273,7 +294,15 @@ def parse_args() -> argparse.Namespace:
 
 
 def load_template() -> str:
-    """Load the base prompt template."""
+    """
+    Load the base prompt template.
+
+    Returns:
+    - The raw template text as a UTF-8 string.
+
+    Raises:
+    - PromptConfigError: if the template file cannot be found.
+    """
     if not TEMPLATE_PATH.is_file():
         raise PromptConfigError(f"Template file not found: {TEMPLATE_PATH}")
     return TEMPLATE_PATH.read_text(encoding="utf-8")
