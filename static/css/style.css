@@ -26,6 +26,14 @@ select, button {
 
 button { cursor: pointer; }
 
+.flash {
+  margin-bottom: 20px;
+  padding: 10px;
+  background: #222;
+  border-left: 4px solid #555;
+  border-radius: 4px;
+}
+
 .flash-item {
   background: #333;
   padding: 8px;

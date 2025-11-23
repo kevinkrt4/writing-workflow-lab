@@ -15,10 +15,24 @@ This script can be used:
 from __future__ import annotations
 
 import argparse
+import sys
 from pathlib import Path
 from typing import Any, Dict
 
 import yaml
+
+
+class PromptError(Exception):
+    """Base class for prompt-related errors."""
+
+
+class PromptConfigError(PromptError):
+    """Raised when the YAML config, template, or module selection is invalid."""
+
+
+class PromptValidationError(PromptError):
+    """Raised when the compiled prompt fails spec/validation checks."""
+
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 CONFIG_PATH = PROJECT_ROOT / "prompt_config.yaml"
@@ -55,7 +69,7 @@ def build_prompt(
     modules = config.get("modules", {})
 
     if module_name not in modules:
-        raise SystemExit(f"Module '{module_name}' not found in config.modules")
+        raise PromptConfigError(f"Module '{module_name}' not found in config.modules")
 
     module_cfg = modules[module_name]
 
@@ -72,7 +86,9 @@ def build_prompt(
 
     evaluate_body = module_cfg.get("evaluate_body", "").rstrip()
     if not evaluate_body:
-        raise SystemExit(f"modules.{module_name}.evaluate_body is empty in config")
+        raise PromptConfigError(
+            f"modules.{module_name}.evaluate_body is empty in config"
+        )
 
     basename = input_file.stem
     output_filename = f"{basename}_{module_name}.md"
@@ -111,11 +127,13 @@ def build_prompt(
 def load_config() -> Dict[str, Any]:
     """Load YAML config from prompt_config.yaml."""
     if not CONFIG_PATH.is_file():
-        raise SystemExit(f"Config file not found: {CONFIG_PATH}")
+        raise PromptConfigError(f"Config file not found: {CONFIG_PATH}")
     with CONFIG_PATH.open("r", encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
     if "defaults" not in data or "modules" not in data:
-        raise SystemExit("Config missing required top-level keys: defaults, modules")
+        raise PromptConfigError(
+            "Config missing required top-level keys: defaults, modules"
+        )
     return data
 
 
@@ -149,7 +167,7 @@ def validate_compiled_prompt(
 
     leftovers = [tok for tok in unresolved_tokens if tok in text]
     if leftovers:
-        raise SystemExit(
+        raise PromptValidationError(
             "SpecViolation: unresolved placeholders in compiled prompt: "
             + ", ".join(leftovers)
         )
@@ -168,7 +186,7 @@ def validate_compiled_prompt(
 
     missing = [frag for frag in must_contain if frag not in text]
     if missing:
-        raise SystemExit(
+        raise PromptValidationError(
             "SpecViolation: compiled prompt missing required fragments:\n"
             + "\n".join(f"- {m}" for m in missing)
         )
@@ -180,7 +198,7 @@ def validate_compiled_prompt(
         ]
         missing_headings = [h for h in required_headings if h not in text]
         if missing_headings:
-            raise SystemExit(
+            raise PromptValidationError(
                 "SpecViolation: compiled prompt missing required section headings:\n"
                 + "\n".join(f"- {h}" for h in missing_headings)
             )
@@ -257,7 +275,7 @@ def parse_args() -> argparse.Namespace:
 def load_template() -> str:
     """Load the base prompt template."""
     if not TEMPLATE_PATH.is_file():
-        raise SystemExit(f"Template file not found: {TEMPLATE_PATH}")
+        raise PromptConfigError(f"Template file not found: {TEMPLATE_PATH}")
     return TEMPLATE_PATH.read_text(encoding="utf-8")
 
 
@@ -268,20 +286,32 @@ def load_template() -> str:
 
 def main() -> None:
     args = parse_args()
-    config = load_config()
+
+    # Load config and handle config-related errors
+    try:
+        config = load_config()
+    except PromptConfigError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        raise SystemExit(1)
 
     # Resolve input path directly from the CLI argument (no YAML path logic)
     input_path = Path(args.input_file).expanduser().resolve()
 
     if not input_path.is_file():
-        raise SystemExit(f"Input file not found: {input_path}")
+        print(f"Error: input file not found: {input_path}", file=sys.stderr)
+        raise SystemExit(1)
 
-    compiled_prompt = build_prompt(
-        input_file=input_path,
-        module_name=args.module,
-        config=config,
-        override_output_path=args.override_output_path,
-    )
+    try:
+        compiled_prompt = build_prompt(
+            input_file=input_path,
+            module_name=args.module,
+            config=config,
+            override_output_path=args.override_output_path,
+        )
+    except PromptError as e:
+        # Catches PromptConfigError and PromptValidationError
+        print(f"Error: {e}", file=sys.stderr)
+        raise SystemExit(1)
 
     # Note:
     # - override_output_path (from --output-path) affects only the metadata
