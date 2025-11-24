@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <title>Prompt Control Panel</title>
@@ -9,11 +9,14 @@
   <body>
     <div class="page">
 
-      {% with messages = get_flashed_messages() %}
+      {# Global flash messages (with categories) #}
+      {% with messages = get_flashed_messages(with_categories=True) %}
         {% if messages %}
-          <div class="flash">
-            {% for msg in messages %}
-              <div class="flash-item">{{ msg }}</div>
+          <div class="flash-container">
+            {% for category, message in messages %}
+              <div class="flash {{ category }}">
+                {{ message }}
+              </div>
             {% endfor %}
           </div>
         {% endif %}

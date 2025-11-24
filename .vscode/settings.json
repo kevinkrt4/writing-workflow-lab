@@ -1,0 +1,40 @@
+{
+  // Respect .editorconfig but don't auto-guess indentation
+  "editor.detectIndentation": false,
+
+  // Global defaults (fall back when no language-specific rule)
+  "editor.insertSpaces": true,
+  "editor.tabSize": 2,
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+
+  // Show when something weird is happening with whitespace
+  "editor.renderWhitespace": "boundary",
+
+  // Python: 4 spaces, use Black
+  "[python]": {
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+
+  // YAML: 2 spaces
+  "[yaml]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
+
+  // Markdown: 2 spaces, keep trailing whitespace (line breaks)
+  "[markdown]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "files.trimTrailingWhitespace": false
+  },
+
+  // JSON: 2 spaces
+  "[json]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  }
+}
+

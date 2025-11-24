@@ -2,7 +2,7 @@ defaults:
   # Default author tag embedded in metadata
   author: "Kevin"
 
-  # Default output path 
+  # Default output path
   output_path: "/Users/kevinthompson/Downloads"
 
   # Versioning – single source of truth
@@ -11,72 +11,910 @@ defaults:
   script_version: "0.2.2"
 
 modules:
-  Narrative_Synopsis:
+  001-Narrative_Synopsis:
     description: >
-      Generate a narrative synopsis focusing on flow, tone, narrative arc, and
-      the emotional progression of the material.
-
+      Generates a narrative synopsis focusing on flow, tone, narrative arc, and
+      emotional and philosophical progression. Produces a standardized Markdown
+      document with a synopsis section and an emotional/philosophical flow section.
+    output_suffix: "Narrative_Synopsis"
     evaluate_body: |
-      ## EVALUATE: Narrative Synopsis module (v1.9d)
+      You are running the Narrative_Synopsis module.
 
-      Your task is to read the uploaded input file carefully from beginning to end
-      and produce a two-part Markdown output:
+      Read the uploaded notebook carefully.
+      Build all analysis directly and exclusively from the text that is provided.
 
-      1. A "Narrative Synopsis" section (2–5 paragraphs).
-      2. An "Emotional and Philosophical Flow" section (2–4 paragraphs).
+      ------------------------------------------------------------
+      OUTPUT REQUIREMENTS
+      ------------------------------------------------------------
 
-      Follow these rules exactly:
+      1. Generate a complete Markdown document with these sections:
 
-      1. General behavior
-         - Base all of your work only on the uploaded input file and this prompt.
-         - Do not rely on any prior conversations, memories, or assumptions.
-         - Do not invent events, characters, or concepts that are not supported
-           by the text.
-         - Use clear, plain, ASCII-safe English (no curly quotes or fancy dashes).
+         1) Metadata header (YAML block)
+         2) H1 title with notebook name and timestamp
+         3) Narrative Synopsis section
+         4) Emotional and Philosophical Flow section
 
-      2. Section 1: Narrative Synopsis
-         - Add a heading:
-           "## Narrative Synopsis"
-         - Write 2–5 paragraphs that:
-           - Capture the overall flow of events or ideas.
+      2. Metadata header rules:
+
+         - Use these exact keys: title, module, source_file, output_file,
+           date_generated, summary.
+         - Do NOT wrap the YAML header in backticks or code fences.
+         - The summary should be 1–2 sentences describing what this analysis provides.
+
+      3. Analysis behavior:
+
+         - Narrative Synopsis:
+           - Summarize the overall flow of events or ideas.
            - Identify the central voice, protagonist, or primary perspective.
            - Highlight key conflicts, turning points, and shifts in direction.
            - Preserve the tone and emotional temperature of the original text.
-           - Respect the original order of major movements (do not re-outline it
-             into bullet points).
-         - Keep this section narrative, not analytical: it should read like a
-           smooth summary of what happens or unfolds, not like a critique.
+           - Respect the original order of major movements (do not turn the entire
+             notebook into a bullet-point outline).
 
-      3. Section 2: Emotional and Philosophical Flow
-         - Add a heading:
-           "## Emotional and Philosophical Flow"
-         - Write 2–4 paragraphs that:
+         - Emotional and Philosophical Flow:
            - Trace how the emotional tone evolves across the text
-             (for example: anxious → curious → resigned → clear).
+             (for example: anxious -> curious -> resigned -> clear).
            - Identify key tensions (fear vs trust, ego vs surrender, control vs
-             acceptance, etc.) where they appear in the input.
+             acceptance, etc.) where they appear.
            - Show how those tensions intensify, turn, or resolve.
-           - Note any explicit or implicit philosophical questions the text is
-             grappling with (for example: identity, death, meaning, freedom).
-         - Keep this section grounded in the text: whenever you describe an
-           emotional or philosophical shift, make sure it clearly matches
-           something that actually appears in the input.
+           - Note explicit or implicit philosophical questions (identity, death,
+             meaning, freedom, meaning, etc.) that the notebook grapples with.
+           - Keep all observations clearly grounded in the actual text.
 
-      4. Formatting and style
-         - Output must be valid Markdown with:
-           - "## Narrative Synopsis"
-           - "## Emotional and Philosophical Flow"
-           as the only level-2 headings.
-         - Do not wrap the whole response in code fences.
-         - Do not include a YAML header unless a future version of this module
-           explicitly instructs you to do so.
-         - Use paragraphs, not lists, unless a short list is necessary for
-           clarity.
-         - Do not add extra sections, appendices, or commentary outside the
-           two required sections.
+         - Use clear, neutral, ASCII-safe English.
+         - Do not invent events, characters, or concepts that are not supported
+           by the input.
 
-      5. Consistency with run metadata
-         - The run metadata block described earlier in this prompt must appear
-           first in your output.
-         - After the metadata block and a single blank line, begin with
-           "## Narrative Synopsis" and then "## Emotional and Philosophical Flow".
+      4. Structure must match this template exactly (content is dynamic but layout is fixed):
+
+         ---
+         title: "[Notebook Title] — Narrative Synopsis"
+         module: "Narrative Synopsis (Auto Edition)"
+         source_file: "[basename].txt"
+         output_file: "[basename]_Narrative_Synopsis.md"
+         date_generated: "[YYYY-MM-DD]"
+         summary: >
+           Generates a cohesive narrative synopsis and an analysis of the emotional
+           and philosophical flow of the uploaded notebook.
+         ---
+
+         # [Notebook Title] — Narrative Synopsis
+         *Generated: [timestamp]*
+
+         ## 1️⃣ Narrative Synopsis
+
+         ## 2️⃣ Emotional and Philosophical Flow
+
+      5. Do not insert any meta commentary, explanations, or process notes.
+      6. Produce full, final Markdown output only — no prefaces, no placeholders.
+
+  002-Outline_Synopsis:
+    description: >
+      Generates a structured outline synopsis identifying major beats, ideas,
+      and scene segments in order of appearance, with emphasis on structure,
+      pacing, and recurring motifs. Produces a standardized Markdown document
+      in Kevin's Gold Standard outline format.
+    output_suffix: "Outline_Synopsis"
+    evaluate_body: |
+      You are running the Outline_Synopsis module.
+
+      Read the uploaded notebook carefully from beginning to end.
+      Build all outline beats exclusively from the content that is provided.
+
+      ------------------------------------------------------------
+      OUTPUT REQUIREMENTS
+      ------------------------------------------------------------
+
+      1. Produce a complete Markdown document with these sections:
+
+         1) Metadata header (YAML block)
+         2) H1 title with notebook name and timestamp
+         3) Outline Synopsis (single-section outline)
+
+      2. Metadata header rules:
+
+         - Use these exact keys: title, module, source_file, output_file,
+           date_generated, summary.
+         - Do NOT wrap the YAML header in backticks or code fences.
+         - The summary must be 1–2 sentences describing the outline synopsis.
+
+      3. Outline construction rules:
+
+         - Begin the analysis after the metadata and title with a single heading:
+           ## Outline Synopsis
+
+         - Create a bullet-point or numbered list that:
+           - Identifies the major beats, ideas, or scene segments.
+           - Preserves the order of appearance in the text.
+           - Emphasizes structure, pacing, conceptual movement, and motif echoes.
+           - Summarizes without interpreting or embellishing.
+           - Uses concise, neutral, ASCII-safe English.
+
+         - Do not invent events, characters, or ideas not clearly present in the text.
+
+      4. Structure must match this template exactly (content dynamic, layout fixed):
+
+         ---
+         title: "[Notebook Title] — Outline Synopsis"
+         module: "Outline Synopsis (Auto Edition)"
+         source_file: "[basename].txt"
+         output_file: "[basename]_Outline_Synopsis.md"
+         date_generated: "[YYYY-MM-DD]"
+         summary: >
+           Generates a structured outline of the notebook, identifying major beats,
+           shifts, and ideas in order of appearance.
+         ---
+
+         # [Notebook Title] — Outline Synopsis
+         *Generated: [timestamp]*
+
+         ## Outline Synopsis
+
+      5. Do not insert any meta commentary, explanations, or process notes.
+      6. Produce full, final Markdown output only — clean, complete, and fully formatted.
+
+  003-Characters_Relationships:
+    description: >
+      Analyzes and maps characters, relationships, emotional progression, and
+      philosophical tensions within the uploaded notebook. Produces a
+      multi-section Markdown document in Kevin's Gold Standard character and
+      relationship format.
+    output_suffix: "Characters_Relationships"
+    evaluate_body: |
+      You are running the Characters_Relationships module.
+
+      Read the uploaded notebook carefully from beginning to end.
+      Build all character, relationship, and evolution analysis strictly and
+      exclusively from the text that is provided.
+
+      ------------------------------------------------------------
+      OUTPUT REQUIREMENTS
+      ------------------------------------------------------------
+
+      1. Produce a complete Markdown document with these sections:
+
+         1) Metadata header (YAML block)
+         2) H1 title with notebook name and timestamp
+         3) Character List (table)
+         4) Relationship Map (textual)
+         5) Narrative Summary (2–3 paragraphs)
+         6) Relational Themes (list)
+         7) Character Evolution (paragraphs or bullet format)
+
+      2. Metadata header rules:
+
+         - Use these exact keys:
+             title
+             module
+             source_file
+             output_file
+             date_generated
+             summary
+
+         - Do NOT wrap the YAML header in backticks or fences.
+         - Summary must be 1–2 sentences describing the character analysis.
+
+      3. Section rules:
+
+         ## Character List
+         - Create a Markdown table with columns:
+             Character / Persona
+             Traits / Descriptors
+             Motivation / Goal
+             Appears In (Conceptual Sections)
+         - Use only evidence in the uploaded notebook.
+
+         ## Relationship Map
+         - Use textual descriptions of relationships.
+         - Use these formats:
+             Character -> Character  (one-direction influence)
+             Character <-> Character (reciprocal or evolving dynamic)
+         - Ground every relationship entirely in the text.
+
+         ## Narrative Summary
+         - Write 2–3 paragraphs tracing the emotional and philosophical journey.
+         - Highlight tensions such as fear, ego, identity, surrender, acceptance.
+         - Show movement through inquiry → resistance → release.
+         - Maintain smooth, narrative prose (not bullet points).
+
+         ## Relational Themes
+         - List themes that emerge through interactions and evolution.
+         - Connect relational patterns to broader motifs in the notebook.
+         - Keep concise and text-grounded.
+
+         ## Character Evolution
+         - Describe how each major character changes over time.
+         - Highlight shifts in awareness, conflict, or integration.
+
+      4. Structure must match this template exactly (content dynamic, layout fixed):
+
+         ---
+         title: "[Notebook Title] — Characters & Relationships"
+         module: "Characters and Relationships Analysis (Auto Edition)"
+         source_file: "[basename].txt"
+         output_file: "[basename]_Characters_Relationships.md"
+         date_generated: "[YYYY-MM-DD]"
+         summary: >
+           Analyzes characters, relationships, emotional trajectories, and
+           philosophical tensions within the notebook.
+         ---
+
+         # [Notebook Title] — Characters & Relationships
+         *Generated: [timestamp]*
+
+         ## Character List
+
+         ## Relationship Map
+
+         ## Narrative Summary
+
+         ## Relational Themes
+
+         ## Character Evolution
+
+      5. Do not insert any meta commentary, examples, or process notes.
+      6. Output only the final Markdown document — clean, complete, and fully formatted.
+  004-Themes_Motifs:
+    description: >
+      Automatically analyzes the uploaded notebook for recurring themes, symbolic
+      motifs, emotional patterns, and philosophical tensions. Generates a
+      structured Markdown output in Kevin’s gold-standard format, including a
+      metadata header, overview tables, detailed analyses, motif breakdowns, and
+      a final integrative summary.
+    output_suffix: "Themes_Motifs"
+    evaluate_body: |
+      You are running the ThemesAndMotifs module.
+
+      Read the uploaded notebook carefully.
+      Build all analysis directly and exclusively from the text that is provided.
+
+      Your output must follow Kevin’s official “Gold Standard” Themes & Motifs layout.
+      Do not change section order, spacing, or headings.
+
+      ------------------------------------------------------------
+      OUTPUT REQUIREMENTS
+      ------------------------------------------------------------
+
+      1. Generate a complete Markdown document with these sections:
+
+          1) Metadata header (YAML block)
+          2) H1 title with notebook name and timestamp
+          3) Theme Overview table
+          4) Detailed Theme Analyses
+          5) Symbolic Motifs table
+          6) Thematic Interplay
+          7) Closing Summary
+
+      2. Metadata header rules:
+          - Use these exact keys: title, module, source_file, output_file,
+            date_generated, summary.
+          - Do NOT wrap the YAML header in backticks.
+          - The summary should be 1–2 sentences.
+
+      3. Analysis behavior:
+          - Identify recurring themes and philosophical tensions.
+          - Identify symbolic motifs appearing across the text.
+          - Quote directly only with short inline phrases, never blockquotes.
+          - Group related themes automatically (e.g., fear, surrender, trust).
+          - Write in clear, flowing, neutral analytical prose.
+          - Maintain consistent Markdown formatting, spacing, and clean ASCII output.
+
+      4. Structure must match this template exactly (content is dynamic but layout is fixed):
+
+          ---
+          title: "[Notebook Title] — Themes & Motifs"
+          module: "Theme & Motif Analysis (Auto Edition)"
+          source_file: "[basename].txt"
+          output_file: "[basename]_Themes_Motifs.md"
+          date_generated: "[YYYY-MM-DD]"
+          summary: >
+            Automatically generated study of recurring themes, symbols, and philosophical tensions.
+            Reveals how emotional, spiritual, and intellectual threads weave together into a coherent vision.
+          ---
+
+          # [Notebook Title] — Themes & Motifs
+          *Generated: [timestamp]*
+
+          ## 1️⃣ Theme Overview
+
+          | Theme | Core Question | Emotional Tone | Key Symbols / References |
+          |-------|----------------|----------------|---------------------------|
+
+          ## 2️⃣ Detailed Theme Analyses
+
+          ## 3️⃣ Symbolic Motifs
+
+          | Symbol | Represents | Appears In | Transformation |
+          |--------|------------|------------|----------------|
+
+          ## 4️⃣ Thematic Interplay
+
+          ## 5️⃣ Closing Summary
+
+      5. Do not insert any meta commentary, explanations, or process notes.
+      6. Produce full, final Markdown output only. No prefaces. No placeholders.
+
+  005-Quotes:
+    description: >
+      Extracts notable lines, reflections, and aphoristic insights from the uploaded
+      notebook. Produces a curated quote bank with contextual tags, thematic
+      clustering, and commentary, formatted in Kevin's gold-standard Markdown layout.
+    output_suffix: "Quotes"
+    evaluate_body: |
+      You are running the QuoteBank module.
+
+      Read the uploaded notebook carefully.
+      Extract all quotes directly and exclusively from the provided text.
+
+      ------------------------------------------------------------
+      OUTPUT REQUIREMENTS
+      ------------------------------------------------------------
+
+      1. Produce a complete Markdown document with these sections:
+
+         1) Metadata header (YAML block)
+         2) H1 title with notebook name and timestamp
+         3) Key Excerpts table
+         4) Thematic Clusters
+         5) Contextual Notes
+         6) Closing Summary
+
+      2. Metadata header rules:
+         - Use these exact keys: title, module, source_file, output_file,
+           date_generated, summary.
+         - Do NOT wrap the YAML header in backticks.
+         - Summary should be 1–2 sentences describing the nature of the quote bank.
+
+      3. Quote extraction rules:
+         - Extract short, resonant, or philosophically potent lines.
+         - Preserve original punctuation and capitalization.
+         - Limit multi-sentence quotes to 2–3 lines maximum.
+         - Provide a short commentary line for each quote.
+         - Include 1–3 theme tags that connect it to broader motifs.
+         - Use inline quotes only, never blockquotes.
+
+      4. Structure must match this template (content is dynamic):
+
+         ---
+         title: "[Notebook Title] — Quote Bank"
+         module: "Quote Bank (Auto Edition)"
+         source_file: "[basename].txt"
+         output_file: "[basename]_Quotes.md"
+         date_generated: "[YYYY-MM-DD]"
+         summary: >
+           Automatically extracts and curates notable lines, reflections, and aphoristic insights.
+           Provides tags and commentary for reuse in thematic work and synthesis.
+         ---
+
+         # [Notebook Title] — Quote Bank
+         *Generated: [timestamp]*
+
+         ## 1️⃣ Key Excerpts
+
+         | Page / Section | Excerpt | Theme Tags | Commentary |
+         |----------------|----------|-------------|-------------|
+
+         ## 2️⃣ Thematic Clusters
+
+         ## 3️⃣ Contextual Notes
+
+         ## 4️⃣ Closing Summary
+
+      5. Do not add meta commentary or implementation notes.
+      6. Output final Markdown only, with no placeholders or extra prose.
+  006-Timeline_Beats:
+    description: >
+      Parses the uploaded notebook sequentially and extracts narrative and emotional
+      beats, scene-like clusters, and key transformation points. Produces a complete
+      Markdown timeline that highlights thematic movement, emotional shifts, and
+      evolving conceptual arcs.
+    output_suffix: "Timeline_Beats"
+    evaluate_body: |
+      You are running the TimelineAndBeats module.
+
+      Read the uploaded notebook carefully.
+      Build the timeline and beat structure exclusively from the text that is provided.
+
+      ------------------------------------------------------------
+      OUTPUT REQUIREMENTS
+      ------------------------------------------------------------
+
+      1. Produce a complete Markdown document with these sections:
+
+         1) Metadata header (YAML block)
+         2) H1 title with notebook name and timestamp
+         3) Timeline Overview table
+         4) Detailed Beat Breakdown
+         5) Scene Summary table
+         6) Final Timeline Summary
+
+      2. Metadata header rules:
+         - Use these exact keys: title, module, source_file, output_file,
+           date_generated, summary.
+         - Do not wrap the header in backticks.
+         - Summary must be 1–2 sentences describing the timeline analysis.
+
+      3. Beat and scene logic:
+         - Parse the notebook sequentially.
+         - Identify natural shifts in topic, tone, tension, or emotional direction.
+         - Label each shift as a Beat (Beat 1, Beat 2, …).
+         - Group related beats into Scenes based on thematic or emotional convergence.
+         - Provide short, clear descriptions for each beat and scene.
+         - Use inline excerpts only when helpful; never use blockquotes.
+
+      4. Structure must match this template (content is dynamic, layout is fixed):
+
+         ---
+         title: "[Notebook Title] — Timeline & Beats"
+         module: "Timeline / Beats to Scenes (Auto Edition)"
+         source_file: "[basename].txt"
+         output_file: "[basename]_Timeline_Beats.md"
+         date_generated: "[YYYY-MM-DD]"
+         summary: >
+           Automatically generates a beat-by-beat and scene-based breakdown of the
+           notebook’s key transitions, highlighting emotional shifts and conceptual pivots.
+         ---
+
+         # [Notebook Title] — Timeline & Beats
+         *Generated: [timestamp]*
+
+         ## Timeline Overview
+
+         | Beat | Description | Emotional / Thematic Shift | Approx. Location |
+         |------|-------------|----------------------------|------------------|
+
+         ## Detailed Beat Breakdown
+
+         ## Scene Summary
+
+         | Scene | Description | Character / Symbolic Focus | Emotional Tone |
+         |-------|-------------|----------------------------|----------------|
+
+         ## Final Timeline Summary
+
+      5. Do not add meta commentary.
+      6. Produce final Markdown output only — clean, complete, and fully formatted.
+
+  007-Consistency_Terminology:
+    description: >
+      Analyzes the uploaded notebook for inconsistencies in terminology, naming,
+      phrasing, metaphor usage, and conceptual framing. Produces a structured
+      Markdown report with standardization recommendations and tone alignment notes.
+    output_suffix: "Consistency_Terminology"
+    evaluate_body: |
+      You are running the Consistency_Terminology module.
+
+      Read the uploaded notebook carefully.
+      Base all findings directly and exclusively on the provided text.
+
+      ------------------------------------------------------------
+      OUTPUT REQUIREMENTS
+      ------------------------------------------------------------
+
+      1. Produce a complete Markdown document with these sections:
+
+         1) Metadata header (YAML block)
+         2) H1 title with notebook name and timestamp
+         3) Key Term Inventory table
+         4) Conceptual Consistency table
+         5) Tone & Style Alignment analysis
+         6) Consistency Summary
+
+      2. Metadata header rules:
+         - Use these exact keys: title, module, source_file, output_file,
+           date_generated, summary.
+         - Do not wrap the header in backticks.
+         - Summary should be 1–2 sentences describing the consistency analysis.
+
+      3. Analysis behavior:
+         - Identify terms, metaphors, concepts, and key phrases that appear with
+           multiple variations.
+         - Document all variations and where they appear.
+         - Suggest standardized terms for thematic, stylistic, or conceptual coherence.
+         - Analyze conceptual framing differences (e.g., Ego vs. Mind; Death as end vs. transformation).
+         - Evaluate tonal transitions, especially abrupt shifts between analytical
+           and poetic modes, and suggest smoothing or alignment.
+         - Maintain neutral, structured, analytical prose.
+
+      4. Structure must match this template (content dynamic, layout fixed):
+
+         ---
+         title: "[Notebook Title] — Consistency & Terminology Check"
+         module: "Consistency & Terminology (Auto Edition)"
+         source_file: "[basename].txt"
+         output_file: "[basename]_Consistency_Terminology.md"
+         date_generated: "[YYYY-MM-DD]"
+         summary: >
+           Automatically detects inconsistencies in terminology, naming, phrasing,
+           and conceptual framing, offering suggestions for unified usage across the notebook.
+         ---
+
+         # [Notebook Title] — Consistency & Terminology Check
+         *Generated: [timestamp]*
+
+         ## 1️⃣ Key Term Inventory
+
+         | Term / Phrase | Variations Found | Context or Section | Suggested Standardization |
+         |----------------|------------------|--------------------|----------------------------|
+
+         ## 2️⃣ Conceptual Consistency
+
+         | Concept | Inconsistent Usage | Clarified Intent | Suggested Alignment |
+         |----------|--------------------|------------------|--------------------|
+
+         ## 3️⃣ Tone & Style Alignment
+
+         ## 4️⃣ Consistency Summary
+
+      5. Do not include any meta commentary or process notes.
+      6. Output only the final Markdown document, clean and fully formatted.
+
+  008-Style_Tone:
+    description: >
+      Analyzes the uploaded notebook's stylistic character, tone, diction, and
+      rhetorical voice. Produces a Markdown profile of mood, narrative stance,
+      rhythm, and expressive techniques, plus an overall style summary.
+    output_suffix: "Style_Tone"
+    evaluate_body: |
+      You are running the StyleAndToneProfile module.
+
+      Read the uploaded notebook carefully.
+      Base all stylistic and tonal observations directly and exclusively on the text.
+
+      ------------------------------------------------------------
+      OUTPUT REQUIREMENTS
+      ------------------------------------------------------------
+
+      1. Produce a complete Markdown document with these sections:
+
+         1) Metadata header (YAML block)
+         2) H1 title with notebook name and timestamp
+         3) Stylistic Overview table
+         4) Tonal Spectrum table
+         5) Rhetorical Devices and Techniques
+         6) Style Evolution and Cohesion
+         7) Closing Summary
+
+      2. Metadata header rules:
+         - Use these exact keys: title, module, source_file, output_file,
+           date_generated, summary.
+         - Do not wrap the header in backticks.
+         - Summary should be 1–2 sentences describing the style and tone profile.
+
+      3. Analysis behavior:
+         - Identify narrative voice (e.g., first-person, omniscient, meditative).
+         - Describe sentence rhythm, pacing, and typical line length patterns.
+         - Note recurring imagery and symbolic tendencies.
+         - Map tonal ranges (analytical, reflective, somber, serene, etc.).
+         - Highlight rhetorical devices: repetition, parallelism, omission,
+           juxtaposition, minimalism, and others present in the text.
+         - Describe how style and tone evolve from early to late sections.
+         - Use clear, neutral, analytical prose; no blockquotes, only inline
+           short examples where helpful.
+
+      4. Structure must match this template (content is dynamic, layout is fixed):
+
+         ---
+         title: "[Notebook Title] — Style & Tone Profile"
+         module: "Style & Tone Profile (Auto Edition)"
+         source_file: "[basename].txt"
+         output_file: "[basename]_Style_Tone.md"
+         date_generated: "[YYYY-MM-DD]"
+         summary: >
+           Automatically analyzes the notebook's stylistic character, tone,
+           diction, and rhetorical voice, highlighting mood, rhythm, and
+           expressive techniques.
+         ---
+
+         # [Notebook Title] — Style & Tone Profile
+         *Generated: [timestamp]*
+
+         ## 1️⃣ Stylistic Overview
+
+         | Element | Description | Examples / Indicators |
+         |----------|--------------|------------------------|
+
+         ## 2️⃣ Tonal Spectrum
+
+         | Tone Range | Emotional Register | Dominant Effect |
+         |-------------|--------------------|-----------------|
+
+         ## 3️⃣ Rhetorical Devices & Techniques
+
+         ## 4️⃣ Style Evolution & Cohesion
+
+         ## 5️⃣ Closing Summary
+
+      5. Do not include any commentary about your own process.
+      6. Output only the final Markdown document, clean and fully formatted.
+
+  009-Expansion_Targets:
+    description: >
+      Identifies sections in the uploaded notebook that have the strongest
+      potential for expansion into standalone essays or chapters. Provides
+      guided questions and research leads to support deeper development.
+    output_suffix: "Expansion_Targets"
+    evaluate_body: |
+      You are running the ExpansionTargets module.
+
+      Read the uploaded notebook carefully.
+      Base all expansion targets, questions, and research leads exclusively on the text provided.
+
+      ------------------------------------------------------------
+      OUTPUT REQUIREMENTS
+      ------------------------------------------------------------
+
+      1. Produce a complete Markdown document with these sections:
+
+         1) Metadata header (YAML block)
+         2) H1 title with notebook name and timestamp
+         3) High-Potential Expansion Sections table
+         4) Expansion Questions
+         5) Suggested Research Leads
+         6) Final Expansion Summary
+
+      2. Metadata header rules:
+         - Use these exact keys: title, module, source_file, output_file,
+           date_generated, summary.
+         - Do not wrap the header in backticks.
+         - Summary should be 1–2 sentences describing the purpose of the expansion analysis.
+
+      3. Analysis behavior:
+         - Identify passages with high potential to expand into essays, articles, or chapters.
+         - Name the section, describe its current content, and explain why it can be expanded.
+         - For each high-potential section, provide targeted guiding questions.
+         - Offer short, relevant research leads grounded in the themes of the notebook.
+         - Maintain neutral analytical tone; concise and structured.
+
+      4. Structure must match this template (content dynamic, layout fixed):
+
+         ---
+         title: "[Notebook Title] — Expansion Targets"
+         module: "Expansion Targets (Auto Edition)"
+         source_file: "[basename].txt"
+         output_file: "[basename]_Expansion_Targets.md"
+         date_generated: "[YYYY-MM-DD]"
+         summary: >
+           Identifies notebook sections with strong potential for expansion into essays
+           or chapters, offering questions and research leads for deeper exploration.
+         ---
+
+         # [Notebook Title] — Expansion Targets
+         *Generated: [timestamp]*
+
+         ## 1️⃣ High-Potential Expansion Sections
+
+         | Section | Description | Expansion Potential |
+         |----------|-------------|---------------------|
+
+         ## 2️⃣ Expansion Questions
+
+         ## 3️⃣ Suggested Research Leads
+
+         ## 4️⃣ Final Expansion Summary
+
+      5. Do not include commentary about your process.
+      6. Output only the final Markdown document, fully formatted.
+
+  010-Titles_Loglines:
+    description: >
+      Generates multiple possible titles and corresponding loglines that capture
+      the core essence, themes, and emotional arc of the uploaded notebook.
+      Produces a structured Markdown file with primary and alternate options.
+    output_suffix: "Titles_Loglines"
+    evaluate_body: |
+      You are running the Titles_Loglines module.
+
+      Read the uploaded notebook carefully.
+      Build all title options and loglines strictly from the text provided.
+
+      ------------------------------------------------------------
+      OUTPUT REQUIREMENTS
+      ------------------------------------------------------------
+
+      1. Produce a complete Markdown document with these sections:
+
+         1) Metadata header (YAML block)
+         2) H1 title with notebook name and timestamp
+         3) Suggested Titles table
+         4) Alternate Title Options table
+         5) Title & Logline Summary
+
+      2. Metadata header rules:
+         - Use these exact keys: title, module, source_file, output_file,
+           date_generated, summary.
+         - Do NOT wrap the header in backticks.
+         - Summary must be 1–2 sentences describing the purpose of the module.
+
+      3. Title & logline construction rules:
+         - Extract the notebook’s emotional arc, philosophical tensions, motifs,
+           and narrative spine.
+         - Generate several distinct title options (poetic, descriptive, thematic).
+         - For each title, produce a concise logline reflecting the notebook’s essence.
+         - Maintain neutral analytical prose; use inline examples only.
+
+      4. Structure must match this template (layout fixed, content dynamic):
+
+         ---
+         title: "[Notebook Title] — Titles & Loglines"
+         module: "Title & Logline Generator (Auto Edition)"
+         source_file: "[basename].txt"
+         output_file: "[basename]_Titles_Loglines.md"
+         date_generated: "[YYYY-MM-DD]"
+         summary: >
+           Generates a set of potential titles and loglines that express the core
+           themes, emotional movement, and philosophical focus of the notebook.
+         ---
+
+         # [Notebook Title] — Titles & Loglines
+         *Generated: [timestamp]*
+
+         ## 1️⃣ Suggested Titles
+
+         | Title Option | Logline |
+         |--------------|---------|
+
+         ## 2️⃣ Alternate Title Options
+
+         | Title Option | Logline |
+         |--------------|---------|
+
+         ## 3️⃣ Title & Logline Summary
+
+      5. Do not include any meta commentary.
+      6. Output only the final Markdown document, fully formatted.
+
+  011-Future_Writing_Questions:
+    description: >
+      Generates open-ended writing questions, thematic prompts, and creative
+      explorations derived directly from the uploaded notebook’s content.
+      Organizes questions by topic to support deeper reflection and future writing.
+    output_suffix: "Future_Writing_Questions"
+    evaluate_body: |
+      You are running the Future_Writing_Questions module.
+
+      Read the uploaded notebook carefully.
+      Base all writing questions and prompts directly and exclusively on the text provided.
+
+      ------------------------------------------------------------
+      OUTPUT REQUIREMENTS
+      ------------------------------------------------------------
+
+      1. Produce a complete Markdown document with these sections:
+
+         1) Metadata header (YAML block)
+         2) H1 title with notebook name and timestamp
+         3) Theme-Based Questions
+         4) Philosophical Prompts
+         5) Creative Exploration Prompts
+         6) Closing Note
+
+      2. Metadata header rules:
+         - Use these exact keys: title, module, source_file, output_file,
+           date_generated, summary.
+         - Do NOT wrap the YAML header in backticks.
+         - Summary should be 1–2 sentences describing the purpose of the writing questions.
+
+      3. Question generation rules:
+         - Build all questions directly from themes, motifs, reflections, tensions,
+           or philosophical movements found in the notebook.
+         - Organize questions into the three required sections:
+             - Theme-Based Questions
+             - Philosophical Prompts
+             - Creative Exploration Prompts
+         - Keep tone open-ended, reflective, and generative.
+         - Do not include any questions that lack grounding in the input text.
+         - Use clear, simple, ASCII-safe English.
+
+      4. Structure must match this template (layout fixed, content dynamic):
+
+         ---
+         title: "[Notebook Title] — Future Writing Questions"
+         module: "Future Writing Questions (Auto Edition)"
+         source_file: "[basename].txt"
+         output_file: "[basename]_Future_Writing_Questions.md"
+         date_generated: "[YYYY-MM-DD]"
+         summary: >
+           Automatically generates open-ended writing and reflection questions
+           derived from the notebook’s core themes, motifs, and philosophical tensions.
+         ---
+
+         # [Notebook Title] — Future Writing Questions
+         *Generated: [timestamp]*
+
+         ## 1️⃣ Theme-Based Questions
+
+         ## 2️⃣ Philosophical Prompts
+
+         ## 3️⃣ Creative Exploration Prompts
+
+         ## 4️⃣ Closing Note
+
+      5. Do not include any meta commentary or process notes.
+      6. Output only the final Markdown document, fully formatted.
+
+  012-Deep_Synthesis:
+    description: >
+      Performs a Deep Synthesis of a single uploaded notebook, identifying its
+      core themes, motifs, tensions, conceptual arcs, and philosophical
+      resolutions. Produces a unified synthesis structured in Kevin's Gold
+      Standard format, highlighting the internal logic and evolution of the work.
+    output_suffix: "Deep_Synthesis"
+    evaluate_body: |
+      You are running the Deep_Synthesis module.
+
+      Read the uploaded notebook carefully.
+      Base all synthesis findings directly and exclusively on the text provided.
+
+      ------------------------------------------------------------
+      OUTPUT REQUIREMENTS
+      ------------------------------------------------------------
+
+      1. Produce a complete Markdown document with these sections:
+
+         1) Metadata header (YAML block)
+         2) H1 title with notebook name and timestamp
+         3) Synthesis Overview table
+         4) Conceptual Development Arcs
+         5) Tensions & Divergences table
+         6) Key Passages Index
+         7) Opportunities for Expansion
+         8) Closing Synthesis
+
+      2. Metadata header rules:
+         - Use these exact keys: title, module, source_file, output_file,
+           date_generated, summary.
+         - Do NOT wrap the YAML header in backticks.
+         - Summary must be 1–2 sentences describing the purpose of the synthesis.
+
+      3. Synthesis behavior:
+         - Identify central themes, motifs, questions, and emotional-philosophical
+           currents in the notebook.
+         - Track the notebook’s internal development, including conceptual,
+           emotional, and stylistic evolution.
+         - Identify tensions, contradictions, or unresolved inquiries within the text.
+         - Highlight key passages or sections that anchor conceptual movements.
+         - Suggest opportunities for expansion, including mini-essay seeds and
+           glossary terms.
+         - Use clear, neutral, analytical prose; no creative embellishment.
+         - Use inline excerpts only when needed; never use blockquotes.
+
+      4. Structure must match this template (layout fixed, content dynamic):
+
+         ---
+         title: "[Notebook Title] — Deep Synthesis"
+         module: "Deep Synthesis (Auto Edition)"
+         source_file: "[basename].txt"
+         output_file: "[basename]_Deep_Synthesis.md"
+         date_generated: "[YYYY-MM-DD]"
+         summary: >
+           Generates a unified synthesis of the notebook’s themes, motifs, tensions,
+           and developmental arcs, revealing the internal logic and conceptual flow
+           of the work.
+         ---
+
+         # [Notebook Title] — Deep Synthesis
+         *Generated: [timestamp]*
+
+         ## 1️⃣ Synthesis Overview
+
+         | Theme / Idea | Description | Key Insight | Notes |
+         |--------------|-------------|-------------|-------|
+
+         ## 2️⃣ Conceptual Development Arcs
+
+         ## 3️⃣ Tensions & Divergences
+
+         | Tension | Location / Section | Description | Possible Integration |
+         |---------|--------------------|-------------|----------------------|
+
+         ## 4️⃣ Key Passages Index
+
+         ## 5️⃣ Opportunities for Expansion
+
+         ## 6️⃣ Closing Synthesis
+
+      5. Do not include any meta commentary or process notes.
+      6. Output only the final Markdown document, fully formatted.
+
+

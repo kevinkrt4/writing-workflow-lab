@@ -4,7 +4,7 @@ preprocess_prompt.py v0.2.2
 
 Compile a module prompt from:
 - prompt_config.yaml
-- prompts/TEMPLATE_v1.9d.txt
+- prompts/compiler_TEMPLATE_v1.9d.txt
 - an input file (for basename only)
 
 This script can be used:
@@ -36,7 +36,24 @@ class PromptValidationError(PromptError):
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 CONFIG_PATH = PROJECT_ROOT / "prompt_config.yaml"
-TEMPLATE_PATH = PROJECT_ROOT / "prompts" / "TEMPLATE_v1.9d.txt"
+TEMPLATE_PATH = PROJECT_ROOT / "prompts" / "compiler_TEMPLATE_v1.9d.txt"
+
+
+def determine_output_filename(
+    basename: str,
+    module_name: str,
+    module_cfg: Dict[str, Any],
+) -> str:
+    """
+    Determine the recommended output filename for this run.
+
+    Prefer an explicit 'output_suffix' in the module config.
+    Fall back to <basename>_<module_name>.md if none is provided.
+    """
+    suffix = module_cfg.get("output_suffix")
+    if suffix:
+        return f"{basename}_{suffix}.md"
+    return f"{basename}_{module_name}.md"
 
 
 # ============================================================
@@ -98,7 +115,7 @@ def build_prompt(
         )
 
     basename = input_file.stem
-    output_filename = f"{basename}_{module_name}.md"
+    output_filename = determine_output_filename(basename, module_name, module_cfg)
 
     template_text = load_template()
 
@@ -131,9 +148,9 @@ def build_prompt(
 # ============================================================
 
 
-def load_config() -> Dict[str, Any]:
+def load_config(path: Path = CONFIG_PATH) -> Dict[str, Any]:
     """
-    Load YAML config from prompt_config.yaml.
+    Load YAML config from the given path (default: CONFIG_PATH).
 
     Returns:
     - A dict with at least two top-level keys: "defaults" and "modules".
@@ -142,14 +159,17 @@ def load_config() -> Dict[str, Any]:
     - PromptConfigError: if the config file is missing or does not contain the
       required top-level keys.
     """
-    if not CONFIG_PATH.is_file():
-        raise PromptConfigError(f"Config file not found: {CONFIG_PATH}")
-    with CONFIG_PATH.open("r", encoding="utf-8") as f:
+    if not path.is_file():
+        raise PromptConfigError(f"Config file not found: {path}")
+
+    with path.open("r", encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
+
     if "defaults" not in data or "modules" not in data:
         raise PromptConfigError(
             "Config missing required top-level keys: defaults, modules"
         )
+
     return data
 
 

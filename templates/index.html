@@ -1,44 +1,41 @@
-{% extends "base.html" %}
+  {% extends "base.html" %}
 
-{% block content %}
-  <h1>Prompt Control Panel</h1>
+  {% block content %}
+    <h1>Prompt Control Panel</h1>
 
-  <form method="post">
+    <form method="post">
 
-    <div class="field">
-      <label>Module</label>
-      <select name="module">
-        <option value="">-- choose --</option>
-        {% for value, label in modules %}
-          <option value="{{ value }}">{{ label }}</option>
-        {% endfor %}
-      </select>
-    </div>
+      <div class="field">
+        <label for="module">Module</label>
+        <select name="module" id="module">
+          <option value="">-- choose --</option>
+          {% for module_key in modules %}
+            <option value="{{ module_key }}"
+                    {% if module_key == selected_module %}selected{% endif %}>
+              {{ module_key }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
 
-    <div class="field">
-      <label>Input file</label>
-      <select name="input_file">
-        <option value="">-- choose --</option>
-        {% for f in files %}
-          <option value="{{ f }}">{{ f }}</option>
-        {% endfor %}
-      </select>
-    </div>
+      <div class="field">
+        <label for="draft_file">Draft file</label>
+        <select name="draft_file" id="draft_file">
+          <option value="">-- choose --</option>
+          {% for f in draft_files %}
+            <option value="{{ f }}"
+                    {% if f == selected_file %}selected{% endif %}>
+              {{ f }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
 
-    <!-- Debug checkbox -->
-    <div class="field">
-      <label>
-        <input type="checkbox" name="debug" {% if debug %}checked{% endif %}>
-        Debug
-      </label>
-    </div>
+      <button type="submit">Compile</button>
 
-    <button type="submit">Run</button>
+    </form>
 
-  </form>
+    <h2>Compiled Prompt</h2>
+    <textarea readonly rows="25" cols="80">{{ compiled_prompt }}</textarea>
 
-  {% if logs %}
-    <h2>Logs</h2>
-    <pre class="logs">{{ logs }}</pre>
-  {% endif %}
-{% endblock %}
+  {% endblock %}

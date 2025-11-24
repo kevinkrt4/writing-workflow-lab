@@ -47,3 +47,23 @@ button { cursor: pointer; }
   border-radius: 4px;
   white-space: pre-wrap;
 }
+
+textarea {
+    background-color: #1e1e1e;     /* soft dark gray */
+    color: #dcdcdc;                /* light but not white text */
+    border: 1px solid #444;
+    border-radius: 6px;
+    padding: 12px;
+    font-family: monospace;        /* matches code-like output */
+    font-size: 14px;
+    line-height: 1.4;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    resize: vertical;
+    outline: none;
+}
+
+textarea:focus {
+    border-color: #666;
+}
