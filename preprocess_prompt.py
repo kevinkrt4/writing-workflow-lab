@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-preprocess_prompt.py v0.2.2
+preprocess_prompt.py v0.2.3
 
-Compile a module prompt from:
-- prompt_config.yaml
-- prompts/compiler_TEMPLATE_v1.9d.txt
-- an input file (for basename only)
+Compile a module-specific compiled prompt from:
+- prompt_config.yaml (defaults + modules)
+- prompts/compiler_TEMPLATE_v1.9d.txt (shared master template)
+- an input text file (used for basename and metadata only)
 
-This script can be used:
+This script implements the Prompt Execution Spec v0.2.3 and can be used:
 - as a CLI tool (see main())
 - or as a library (import build_prompt and load_config).
 """
@@ -181,7 +181,7 @@ def validate_compiled_prompt(
     output_path: str,
 ) -> None:
     """
-    Spec check for v0.2.2.
+    Spec check for v0.2.3.
 
     Validates that the compiled prompt text conforms to the current spec:
 
@@ -189,7 +189,6 @@ def validate_compiled_prompt(
     - No leftover EVALUATE_BODY marker.
     - Run metadata block present.
     - Required identity lines present.
-    - Required section headings for certain modules (e.g. Narrative_Synopsis).
 
     Raises:
     - PromptValidationError: if any of the above checks fail.
@@ -232,18 +231,6 @@ def validate_compiled_prompt(
             + "\n".join(f"- {m}" for m in missing)
         )
 
-    if module_name == "Narrative_Synopsis":
-        required_headings = [
-            "## Narrative Synopsis",
-            "## Emotional and Philosophical Flow",
-        ]
-        missing_headings = [h for h in required_headings if h not in text]
-        if missing_headings:
-            raise PromptValidationError(
-                "SpecViolation: compiled prompt missing required section headings:\n"
-                + "\n".join(f"- {h}" for h in missing_headings)
-            )
-
 
 def parse_args() -> argparse.Namespace:
     epilog = (
@@ -251,18 +238,20 @@ def parse_args() -> argparse.Namespace:
         "  # 1) Compile the prompt file:\n"
         "  python3 preprocess_prompt.py \\\n"
         "      --input-file drafts/StarbucksNotebook1.txt \\\n"
-        "      --module Narrative_Synopsis \\\n"
+        "      --module 001-Narrative_Synopsis \\\n"
         "      -o StarbucksNotebook1_compiled_prompt.txt\n\n"
         "  # 2) Paste StarbucksNotebook1_compiled_prompt.txt into ChatGPT\n"
-        "  #    ChatGPT then generates the final output file, e.g.:\n"
+        "  #    ChatGPT then generates the final module output file, e.g.:\n"
         "  #    StarbucksNotebook1_Narrative_Synopsis.md\n"
     )
     parser = argparse.ArgumentParser(
         prog="preprocess_prompt.py",
         description=(
-            "Compile a module PROMPT file from prompt_config.yaml and the shared "
-            "template (v0.2.2). The output is a compiled prompt you paste into ChatGPT, "
-            "which then produces the final module output file."
+            "Compile a module-specific COMPILED PROMPT from prompt_config.yaml, "
+            "the shared template (compiler_TEMPLATE_v1.9d), and an input text file, "
+            "according to the Prompt Execution Spec v0.2.3. The output is a compiled "
+            "prompt that you paste into ChatGPT, which then produces the final module "
+            "output file (for example, StarbucksNotebook1_Narrative_Synopsis.md)."
         ),
         epilog=epilog,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -280,7 +269,7 @@ def parse_args() -> argparse.Namespace:
         required=True,
         help=(
             "Required. Module key to use from config.modules "
-            "(e.g. Narrative_Synopsis)."
+            "(e.g. 001-Narrative_Synopsis)."
         ),
     )
     parser.add_argument(
@@ -289,9 +278,10 @@ def parse_args() -> argparse.Namespace:
         dest="output_file",
         help=(
             "Path to write the COMPILED PROMPT file (the file you paste into ChatGPT). "
-            "Defaults to <basename>_compiled_prompt.txt in the current working directory. "
-            "Note: This is NOT the final module output; it is the prompt that instructs "
-            "ChatGPT to generate that output (for example, StarbucksNotebook1_Narrative_Synopsis.md)."
+            "Defaults to <basename>_compiled_prompt.txt in the current working "
+            "directory. Note: This is NOT the final module output; it is the prompt "
+            "that instructs ChatGPT to generate that output (for example, "
+            "StarbucksNotebook1_Narrative_Synopsis.md)."
         ),
     )
     parser.add_argument(
