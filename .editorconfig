@@ -1,85 +1,21 @@
-# Top-level EditorConfig file
 root = true
 
-# ------------------------------------------------------------
-# Global defaults (applied to everything unless overridden)
-# ------------------------------------------------------------
 [*]
 charset = utf-8
 end_of_line = lf
+indent_style = space
+indent_size = 2
 insert_final_newline = true
-
-# Use spaces, never tabs
-indent_style = space
-indent_size = 2
-
-# Trim trailing whitespace in all files except markdown (optional)
 trim_trailing_whitespace = true
 
-
-# ------------------------------------------------------------
-# Python files
-# ------------------------------------------------------------
 [*.py]
-indent_style = space
-indent_size = 4        # standard Python indentation
-max_line_length = 88   # matches Black defaults
-trim_trailing_whitespace = true
+indent_size = 4
 
-
-# ------------------------------------------------------------
-# YAML files
-# ------------------------------------------------------------
-[*.yml]
-indent_style = space
-indent_size = 2
+[*.md]
+trim_trailing_whitespace = false
 
 [*.yaml]
-indent_style = space
 indent_size = 2
 
-
-# ------------------------------------------------------------
-# Markdown files
-# ------------------------------------------------------------
-[*.md]
-indent_style = space
-indent_size = 2
-trim_trailing_whitespace = false   # preserves intentional spacing in lists
-
-
-# ------------------------------------------------------------
-# HTML, CSS, and Jinja templates
-# ------------------------------------------------------------
-[*.html]
-indent_style = space
-indent_size = 2
-
-[*.css]
-indent_style = space
-indent_size = 2
-
-[*.jinja]
-indent_style = space
-indent_size = 2
-
-[*.j2]
-indent_style = space
-indent_size = 2
-
-
-# ------------------------------------------------------------
-# Shell scripts (bash, sh)
-# ------------------------------------------------------------
-[*.sh]
-indent_style = space
-indent_size = 2
-
-
-# ------------------------------------------------------------
-# JSON files
-# ------------------------------------------------------------
 [*.json]
-indent_style = space
 indent_size = 2
-
