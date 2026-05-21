@@ -75,13 +75,13 @@ Second line
 ```md
 1. First item
 2. Second item
-   1. Nested item
+  1. Nested item
 ```
 
 **Rendered:**
 1. First item
 2. Second item
-   1. Nested item
+  1. Nested item
 
 ---
 
