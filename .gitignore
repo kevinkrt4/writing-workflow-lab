@@ -4,7 +4,13 @@
 # Python cache
 __pycache__/
 *.pyc
-.DS_Store
 
-# Generated exports
+# Generated outputs
+outputs/
 exports/
+
+# Tool caches
+.ruff_cache/
+
+# Logs
+*.log
