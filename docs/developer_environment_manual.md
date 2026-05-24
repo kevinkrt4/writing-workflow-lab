@@ -85,7 +85,7 @@ VS Code → Command Palette → Python: Select Interpreter → choose:
 ## 2.7 Test the Compiler
 ```
 promptenv
-python preprocess_prompt.py --module 001 --input drafts/StarbucksNotebook1.txt
+python3 tools/preprocess_prompt.py --module 001 --input-file drafts/StarbucksNotebook1.txt
 ```
 
 ## 2.8 VS Code Configuration
