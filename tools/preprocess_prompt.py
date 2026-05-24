@@ -35,7 +35,7 @@ class PromptValidationError(PromptError):
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-CONFIG_PATH = PROJECT_ROOT / "prompt_config.yaml"
+CONFIG_PATH = PROJECT_ROOT / "config" / "prompt_config.yaml"
 TEMPLATE_PATH = PROJECT_ROOT / "prompts" / "compiler_TEMPLATE_v1.9d.txt"
 
 

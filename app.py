@@ -2,7 +2,7 @@ from pathlib import Path
 
 from flask import Flask, flash, render_template, request
 
-from preprocess_prompt import (
+from tools.preprocess_prompt import (
     PromptConfigError,
     PromptError,
     PromptValidationError,
@@ -18,7 +18,7 @@ app.secret_key = "change-me"
 # --------------------------------------------------------------------
 
 BASE_DIR = Path(__file__).resolve().parent  # writing-workflow-lab/
-CONFIG_PATH = BASE_DIR / "prompt_config.yaml"
+CONFIG_PATH = BASE_DIR / "config" / "prompt_config.yaml"
 DRAFTS_DIR = BASE_DIR / "drafts"
 
 # --------------------------------------------------------------------
