@@ -50,7 +50,7 @@ The Writing Workflow Lab is both a creative and technical system. Over time, too
 ## 2.2 Clone the Repository
 ```
 git clone <repo-url>
-cd writing-workflow-lab
+cd writers_workbench
 ```
 
 ## 2.3 Create and Activate Virtual Environment
@@ -63,7 +63,7 @@ source ~/.venvs/prompts_env/bin/activate
 Add to `.zshrc` or `.bashrc`:
 ```
 promptenv='source ~/.venvs/prompts_env/bin/activate'
-promptui='code ~/GitHub/writing-workflow-lab'
+promptui='code ~/GitHub/writers_workbench'
 ```
 Usage:
 ```
