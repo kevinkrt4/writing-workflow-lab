@@ -17,7 +17,7 @@ app.secret_key = "change-me"
 # Paths
 # --------------------------------------------------------------------
 
-BASE_DIR = Path(__file__).resolve().parent  # writing-workflow-lab/
+BASE_DIR = Path(__file__).resolve().parent  # writers_workbench/
 CONFIG_PATH = BASE_DIR / "config" / "prompt_config.yaml"
 DRAFTS_DIR = BASE_DIR / "drafts"
 
@@ -86,8 +86,6 @@ def index():
                         input_file=input_path,
                         module_name=selected_module,
                         config=PROMPT_CONFIG,
-                        # override_output_path=None,
-                        # debug=debug_enabled,  # for later
                     )
                     flash("Prompt compiled successfully.", "success")
                 except PromptValidationError as e:
@@ -110,4 +108,4 @@ def index():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=5050, use_reloader=False)
