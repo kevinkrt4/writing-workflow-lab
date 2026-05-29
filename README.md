@@ -89,7 +89,7 @@ Writers Workbench is running at http://127.0.0.1:5050
 ```bash
 python tools/preprocess_prompt.py \
   --input-file drafts/StarbucksNotebook1.txt \
-  --module Narrative_Synopsis
+  --module 001-Narrative_Synopsis
 ```
 
 Show compiler help:
@@ -103,8 +103,8 @@ Arguments:
 ```text
 --input-file
 --module
---output-file
---author
+-o, --out
+--output-path
 ```
 
 ---
