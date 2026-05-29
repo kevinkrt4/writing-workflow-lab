@@ -34,7 +34,7 @@ class PromptValidationError(PromptError):
     """Raised when the compiled prompt fails spec/validation checks."""
 
 
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 CONFIG_PATH = PROJECT_ROOT / "config" / "prompt_config.yaml"
 TEMPLATE_PATH = PROJECT_ROOT / "prompts" / "compiler_TEMPLATE_v1.9d.txt"
 
