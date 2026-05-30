@@ -25,6 +25,7 @@ At the start of work in this repository, read and apply:
 - `/Users/kevinthompson/GitHub/reference_library/chat_envs/core_compiled_env.md`
 - `/Users/kevinthompson/GitHub/reference_library/chat_envs/project_compiled_env.md`
 - `/Users/kevinthompson/GitHub/reference_library/projects/writers_workbench/writers_workbench_architecture_direction.md`
+- `/Users/kevinthompson/GitHub/reference_library/projects/writers_workbench/writers_workbench_glossary.md`
 
 Treat these files as active operating context. Do not edit them directly because they are generated files.
 
