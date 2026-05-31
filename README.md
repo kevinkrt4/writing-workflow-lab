@@ -109,6 +109,32 @@ Arguments:
 
 ---
 
+# To Run Review Checks
+
+Install development dependencies in the project virtual environment:
+
+```bash
+/Users/kevinthompson/.venvs/prompts_env/bin/python -m pip install -r requirements-dev.txt
+```
+
+Run the local review command:
+
+```bash
+PYTHON_BIN=/Users/kevinthompson/.venvs/prompts_env/bin/python tools/review.sh
+```
+
+The review command currently runs:
+
+```text
+ruff
+black --check
+isort --check-only
+pytest
+tools/architecture_checks.py
+```
+
+---
+
 # Repository Layout
 
 - `AGENTS.md`

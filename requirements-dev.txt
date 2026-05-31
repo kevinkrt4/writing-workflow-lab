@@ -1,0 +1,6 @@
+black
+flask
+isort
+pytest
+PyYAML
+ruff
