@@ -15,7 +15,11 @@ from tools.preprocess_prompt import (
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 CONFIG_PATH = PROJECT_ROOT / "config" / "prompt_config.yaml"
-INPUT_FILE = PROJECT_ROOT / "drafts" / "StarbucksNotebook1.txt"
+SAMPLE_INPUT_FILE = PROJECT_ROOT / "tests" / "fixtures" / "sample_notebook.txt"
+STARBUCKS_INPUT_FILE = PROJECT_ROOT / "drafts" / "StarbucksNotebook1.txt"
+GOLDEN_PROMPT_FILE = (
+    PROJECT_ROOT / "tests" / "golden" / "sample_notebook_narrative_compiled_prompt.txt"
+)
 
 
 def test_determine_output_filename_prefers_configured_suffix() -> None:
@@ -32,7 +36,7 @@ def test_build_prompt_compiles_narrative_prompt() -> None:
     config = load_config(CONFIG_PATH)
 
     prompt = build_prompt(
-        input_file=INPUT_FILE,
+        input_file=STARBUCKS_INPUT_FILE,
         module_name="001-Narrative_Synopsis",
         config=config,
     )
@@ -52,7 +56,21 @@ def test_build_prompt_rejects_unknown_module() -> None:
     config = load_config(CONFIG_PATH)
 
     with pytest.raises(PromptConfigError, match="Module 'missing' not found"):
-        build_prompt(INPUT_FILE, "missing", config)
+        build_prompt(SAMPLE_INPUT_FILE, "missing", config)
+
+
+def test_build_prompt_matches_golden_narrative_prompt() -> None:
+    config = load_config(CONFIG_PATH)
+
+    prompt = build_prompt(
+        input_file=SAMPLE_INPUT_FILE,
+        module_name="001-Narrative_Synopsis",
+        config=config,
+    )
+
+    expected = GOLDEN_PROMPT_FILE.read_text(encoding="utf-8")
+
+    assert prompt == expected
 
 
 def test_cli_writes_compiled_prompt(tmp_path: Path) -> None:
@@ -63,7 +81,7 @@ def test_cli_writes_compiled_prompt(tmp_path: Path) -> None:
             sys.executable,
             str(PROJECT_ROOT / "tools" / "preprocess_prompt.py"),
             "--input-file",
-            str(INPUT_FILE),
+            str(SAMPLE_INPUT_FILE),
             "--module",
             "001-Narrative_Synopsis",
             "-o",
