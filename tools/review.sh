@@ -6,11 +6,15 @@ REPORT_DIR="${REPORT_DIR:-review_reports}"
 TIMESTAMP="$(date '+%Y-%m-%d_%H%M%S')"
 REPORT_PATH="${REPORT_DIR}/review_${TIMESTAMP}.md"
 LATEST_REPORT_PATH="${REPORT_DIR}/latest.md"
+REPORT_HEADER_PATH="${REPORT_DIR}/.review_${TIMESTAMP}.header.tmp"
+REPORT_BODY_PATH="${REPORT_DIR}/.review_${TIMESTAMP}.body.tmp"
 STATUS="passed"
 PYTHON_VERSION="$("$PYTHON_BIN" --version)"
 PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+CHECKS_CONFIGURED="ruff, black --check, isort --check-only, pytest, architecture checks"
 
 mkdir -p "$REPORT_DIR"
+trap 'rm -f "$REPORT_HEADER_PATH" "$REPORT_BODY_PATH"' EXIT
 
 command_string() {
   printf '%q ' "$@"
@@ -40,6 +44,9 @@ git_dirty_status() {
   fi
 }
 
+INITIAL_WORKTREE_STATUS="$(git_dirty_status)"
+INITIAL_CHANGED_FILES="$(git status --short 2>/dev/null || true)"
+
 append_command_block() {
   local label="$1"
   shift
@@ -53,7 +60,7 @@ append_command_block() {
     printf '%s\n' "$output"
     echo '```'
     echo
-  } >> "$REPORT_PATH"
+  } >> "$REPORT_BODY_PATH"
 }
 
 write_tool_versions() {
@@ -78,7 +85,7 @@ write_tool_versions() {
     echo "pytest: ${pytest_version}"
     echo '```'
     echo
-  } >> "$REPORT_PATH"
+  } >> "$REPORT_BODY_PATH"
 }
 
 write_report_header() {
@@ -97,15 +104,15 @@ write_report_header() {
     echo "- Branch: $(git_value unknown branch --show-current)"
     echo "- HEAD: $(git_value unknown rev-parse --short HEAD)"
     echo "- Upstream: $(git_value none rev-parse --abbrev-ref --symbolic-full-name '@{u}')"
-    echo "- Worktree status: $(git_dirty_status)"
+    echo "- Worktree status: ${INITIAL_WORKTREE_STATUS}"
     echo
     echo "### Changed Files"
     echo
     echo '```text'
-    git status --short 2>/dev/null || true
+    printf '%s\n' "$INITIAL_CHANGED_FILES"
     echo '```'
     echo
-  } > "$REPORT_PATH"
+  } > "$REPORT_HEADER_PATH"
 }
 
 append_report_section() {
@@ -132,11 +139,28 @@ append_report_section() {
     printf '%s\n' "$output"
     echo '```'
     echo
-  } >> "$REPORT_PATH"
+  } >> "$REPORT_BODY_PATH"
 }
 
 write_report_footer() {
   {
+    cat "$REPORT_HEADER_PATH"
+    echo "## Review Summary"
+    echo
+    echo "- Automated check status: ${STATUS}"
+    echo "- Checks configured: ${CHECKS_CONFIGURED}"
+    echo "- Worktree status at review start: ${INITIAL_WORKTREE_STATUS}"
+    echo "- Human review required: inspect changed files, task scope, generated artifacts, and residual risk before commit or push."
+    echo
+    echo "## Human Review Checklist"
+    echo
+    echo "- [ ] Confirm the work matches the approved backlog item."
+    echo "- [ ] Inspect changed files for scope, drift, and generated-file edits."
+    echo "- [ ] Confirm runtime behavior evidence is sufficient for the change."
+    echo "- [ ] Review residual risk and decide whether manual checks are needed."
+    echo "- [ ] Confirm backlog task history is updated when task status changes."
+    echo
+    cat "$REPORT_BODY_PATH"
     echo "## Not Checked / Residual Risk"
     echo
     echo "- Browser-level UI behavior is not checked."
