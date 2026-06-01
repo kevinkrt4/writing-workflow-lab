@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -15,11 +16,24 @@ from tools.preprocess_prompt import (
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 CONFIG_PATH = PROJECT_ROOT / "config" / "prompt_config.yaml"
+ACTIVE_SPEC_PATH = PROJECT_ROOT / "specs" / "Prompt_Execution_Spec_v0.2.3.md"
+TEMPLATE_PATH = PROJECT_ROOT / "prompts" / "compiler_TEMPLATE_v1.9d.txt"
 SAMPLE_INPUT_FILE = PROJECT_ROOT / "tests" / "fixtures" / "sample_notebook.txt"
 STARBUCKS_INPUT_FILE = PROJECT_ROOT / "drafts" / "StarbucksNotebook1.txt"
 GOLDEN_PROMPT_FILE = (
     PROJECT_ROOT / "tests" / "golden" / "sample_notebook_narrative_compiled_prompt.txt"
 )
+EXPECTED_TEMPLATE_TOKENS = {
+    "[MODULE]",
+    "[AUTHOR]",
+    "[BASENAME]",
+    "[OUTPUT_PATH]",
+    "[OUTPUT_FILENAME]",
+    "[PROMPT_VERSION]",
+    "[SPEC_VERSION]",
+    "[SCRIPT_VERSION]",
+    "<<<EVALUATE_BODY>>>",
+}
 
 
 def run_cli(*args: str) -> subprocess.CompletedProcess[str]:
@@ -119,6 +133,23 @@ def test_load_config_rejects_missing_required_top_level_keys(tmp_path: Path) -> 
         match="Config missing required top-level keys: defaults, modules",
     ):
         load_config(invalid_config)
+
+
+def test_template_contains_expected_prompt_compiler_tokens() -> None:
+    template = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    for token in EXPECTED_TEMPLATE_TOKENS:
+        assert token in template
+
+
+def test_active_spec_documents_current_prompt_compiler_tokens() -> None:
+    spec = ACTIVE_SPEC_PATH.read_text(encoding="utf-8")
+
+    for token in EXPECTED_TEMPLATE_TOKENS:
+        assert token in spec
+
+    assert "<MODULE_NAME>" not in spec
+    assert re.search(r"(?<!<)<EVALUATE_BODY>(?!>)", spec) is None
 
 
 def test_cli_writes_compiled_prompt(tmp_path: Path) -> None:

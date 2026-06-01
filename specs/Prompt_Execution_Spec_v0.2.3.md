@@ -1,216 +1,232 @@
 # Prompt Execution Spec v0.2.3
 
 ## 1. Purpose
-Define rules for compiling module prompts using preprocess_prompt.py, compiler_TEMPLATE_v1.9d, and prompt_config.yaml.
+
+Define the current Prompt Compiler contract for generating a Compiled Prompt
+from:
+
+- `tools/preprocess_prompt.py`
+- `config/prompt_config.yaml`
+- `prompts/compiler_TEMPLATE_v1.9d.txt`
+- a selected Draft File path
+
+This spec describes the behavior currently expected from `preprocess_prompt.py`
+v0.2.3. It is a runtime contract for prompt compilation, not a full project
+governance document.
 
 ## 2. Related Components
-- preprocess_prompt.py v0.2.3  
-- prompt_config.yaml  
-- compiler_TEMPLATE_v1.9d.txt  
-- validate_compiled_prompt() logic  
+
+- `tools/preprocess_prompt.py`
+- `config/prompt_config.yaml`
+- `prompts/compiler_TEMPLATE_v1.9d.txt`
+- `tests/test_preprocess_prompt.py`
+- `tests/golden/sample_notebook_narrative_compiled_prompt.txt`
 
 ## 3. Scope
-This spec applies to all prompt generation modules executed using preprocess_prompt.py. It defines:
 
-- Required metadata fields  
-- Template structure  
-- Placeholder substitution rules  
-- Module-specific EVALUATE block insertion  
-- Output validation constraints  
+This spec applies to Prompt Compiler runs that use `preprocess_prompt.py`.
 
-The behavior defined here is invariant across modules.
+It defines:
 
----
+- required input sources
+- current template placeholders
+- module lookup behavior
+- output filename behavior
+- runtime validation behavior
+- CLI write behavior
+- review/test-layer responsibilities
 
-## 4. High-Level Overview
+It does not define:
 
-Prompt compilation consists of:
+- provider/API execution
+- local model execution
+- browser UI behavior
+- final model-generated writing output
+- complete project-level architecture checks
 
-1. Loading compiler_TEMPLATE_v1.9d  
-2. Injecting top-level metadata  
-3. Substituting template placeholders  
-4. Inserting module-specific EVALUATE_BODY code  
-5. Writing the compiled output  
-6. Validating the generated prompt  
+## 4. Inputs
 
-These steps must occur in this exact order.
+The Prompt Compiler uses:
 
----
+- a Prompt Config YAML file containing top-level `defaults` and `modules` keys
+- a Prompt Template at `prompts/compiler_TEMPLATE_v1.9d.txt`
+- a selected input file path
+- a module name matching a key in `config["modules"]`
+- an optional metadata-only output path override
+- an optional compiled-prompt output file path for the CLI
 
-## 5. Definitions
+The current implementation uses only the input file stem for metadata and
+recommended output filenames. It does not read the Draft File contents during
+prompt compilation.
 
-**Template**  
-compiler_TEMPLATE_v1.9d — a master text file containing:
+## 5. Prompt Config Contract
 
-- Static structure  
-- Placeholders  
-- Required metadata sections  
-- A single `<EVALUATE_BODY>` token  
+`load_config()` requires the config file to exist and contain these top-level
+keys:
 
-**Module**  
-A configuration entry inside prompt_config.yaml containing:
+- `defaults`
+- `modules`
 
-- `output_suffix`  
-- `description`  
-- `evaluate_body` text  
-- Other fields  
+The current default fields are:
 
-**Placeholder**  
-A token enclosed in angle brackets, e.g., `<MODULE_NAME>`. They may appear once or multiple times.
+- `author`
+- `output_path`
+- `prompt_version`
+- `spec_version`
+- `script_version`
 
----
+If a default is missing, `build_prompt()` uses the current fallback values:
 
-## 6. Required Metadata Insertions
+- author: `Unknown`
+- output path: project root
+- prompt version: `v0.0.0`
+- spec version: `0.0.0`
+- script version: `0.0.0`
 
-The compiler must populate:
+## 6. Module Contract
 
-- `<MODULE_NAME>`  
-- `<BASENAME>`  
-- `<AUTHOR>`  
-- `<DATE>`  
-- `<DATE_GENERATED>`  
-- `<SOURCE_FILE>`  
-- `<OUTPUT_FILE>`  
-- `<OUTPUT_PATH>`  
+The selected module must exist in `config["modules"]`.
 
-Metadata must be inserted before any template substitutions except `<EVALUATE_BODY>`.
+Each selected module must provide a non-empty `evaluate_body`.
 
----
+Each module may provide `output_suffix`. When present, the recommended final
+module output filename is:
 
-## 7. Placeholder Substitution Rules
-
-1. All placeholders must be resolved except `<EVALUATE_BODY>`  
-2. Unused placeholders generate validation failure  
-3. A placeholder must map to a deterministic value  
-4. Order of substitution must be preserved  
-
----
-
-## 8. EVALUATE_BODY Insertion
-
-### 8.1 Requirements
-Each module defines its own text block in prompt_config.yaml:
-
-```yaml
-evaluate_body: |
-  You are running the X module...
+```text
+<basename>_<output_suffix>.md
 ```
 
-### 8.2 Insertion location
-EVALUATE_BODY is inserted into compiler_TEMPLATE_v1.9d at the `<EVALUATE_BODY>` placeholder.
+When `output_suffix` is missing, the fallback filename is:
 
-### 8.3 Constraints
-- One and only one `<EVALUATE_BODY>` must exist in the template  
-- If missing → validation error  
-- If duplicated → validation error  
-
----
-
-## 9. Output File Rules
-
-The compiler must produce:
-
-- A text output that merges:
-  - compiler_TEMPLATE_v1.9d  
-  - runtime metadata  
-  - module-specific EVALUATE_BODY  
-- A filename determined by:
-  - `basename`  
-  - `output_suffix`  
-
-If no `output_suffix` exists, the fallback pattern is:
-
-```
+```text
 <basename>_<module_name>.md
 ```
 
----
+## 7. Template Placeholder Contract
 
-## 10. Template Integration Rules (compiler_TEMPLATE_v1.9d Contract)
+The current template uses square-bracket placeholders:
 
-compiler_TEMPLATE_v1.9d is the master prompt template used by preprocess_prompt.py to:
+- `[MODULE]`
+- `[AUTHOR]`
+- `[BASENAME]`
+- `[OUTPUT_PATH]`
+- `[OUTPUT_FILENAME]`
+- `[PROMPT_VERSION]`
+- `[SPEC_VERSION]`
+- `[SCRIPT_VERSION]`
 
-- Control module formatting  
-- Enforce consistent flow  
-- Guarantee reproducible outputs  
-- Standardize metadata structure  
+The current module insertion marker is:
 
-### 10.1 Template Structure
-compiler_TEMPLATE_v1.9d provides:
+```text
+<<<EVALUATE_BODY>>>
+```
 
-- A top banner  
-- A metadata block  
-- PROCESS INSTRUCTIONS  
-- An EVALUATE BODY placeholder  
-- Section markers  
+The Prompt Compiler replaces all listed placeholders and replaces
+`<<<EVALUATE_BODY>>>` with the selected module's `evaluate_body`.
 
-### 10.2 Template Modification Rules
-compiler_TEMPLATE_v1.9d must not be modified without issuing a new version, for example:
+## 8. Compilation Order
 
-- compiler_TEMPLATE_v1.9e  
-- compiler_TEMPLATE_v1.9f  
+Prompt compilation occurs in this order:
 
-### 10.3 Placeholder Requirements
-compiler_TEMPLATE_v1.9d must contain exactly:
+1. Load Prompt Config.
+2. Resolve the selected module config.
+3. Resolve required defaults and fallback values.
+4. Resolve `evaluate_body`.
+5. Determine the input basename.
+6. Determine the recommended output filename.
+7. Load the Prompt Template.
+8. Replace square-bracket placeholders.
+9. Replace `<<<EVALUATE_BODY>>>`.
+10. Validate compiled prompt integrity.
+11. Return the compiled prompt text.
 
-- `<MODULE_NAME>`  
-- `<BASENAME>`  
-- `<SOURCE_FILE>`  
-- `<OUTPUT_FILE>`  
-- `<OUTPUT_PATH>`  
-- `<AUTHOR>`  
-- `<DATE>`  
-- `<DATE_GENERATED>`  
-- `<SUMMARY>`  
-- `<EVALUATE_BODY>`  
+The CLI writes the compiled prompt to disk only after `build_prompt()` returns
+successfully.
 
-### 10.4 Evaluate Block Insertion
-It is inserted directly into compiler_TEMPLATE_v1.9d at the `<EVALUATE_BODY>` placeholder.
+## 9. Runtime Validation Boundary
 
----
+Runtime validation in `preprocess_prompt.py` protects direct prompt compilation
+correctness. It should catch errors that would produce an unusable Compiled
+Prompt.
 
-## 11. Validation Phase
+Runtime validation currently checks:
 
-Validation ensures:
+- config file exists
+- config has required top-level keys
+- selected module exists
+- selected module `evaluate_body` is not empty
+- template file exists
+- compiled prompt has no unresolved known placeholders
+- compiled prompt has no leftover `<<<EVALUATE_BODY>>>` marker
+- compiled prompt contains required identity and run metadata fragments
 
-1. compiler_TEMPLATE_v1.9d has been loaded  
-2. Required metadata fields were populated  
-3. All placeholders except `<EVALUATE_BODY>` were replaced  
-4. The `<EVALUATE_BODY>` block exists exactly once  
-5. Output format matches expected structure  
-6. The output contains no unresolved placeholders  
+Runtime validation is not responsible for full project governance.
 
----
+## 10. Review/Test-Layer Boundary
 
-## 12. Error Classes
+Tests, golden tests, architecture checks, and future review checks protect
+project integrity and drift.
 
-### 12.1 Template Errors
-Raised when:
+Review/test-layer checks may enforce:
 
-- compiler_TEMPLATE_v1.9d cannot be read  
-- compiler_TEMPLATE_v1.9d is missing required placeholders  
-- compiler_TEMPLATE_v1.9d contains extra or duplicate placeholders  
-- compiler_TEMPLATE_v1.9d does not contain exactly one `<EVALUATE_BODY>` token  
+- active spec file exists
+- template placeholder set matches this spec
+- golden compiled prompt output remains stable
+- config/script/spec versions remain coherent
+- obsolete specs are archived or clearly marked
+- template/spec/config changes are accompanied by tests or documented decisions
+- provider imports remain behind provider adapter boundaries
 
-### 12.2 Metadata Errors
-- Failure to populate required fields  
-- Missing author  
-- Missing source file  
+These checks belong outside the runtime compiler unless they directly protect
+the usability of one compiled prompt.
 
-### 12.3 Module Errors
-- Invalid module name  
-- Missing evaluate_body  
-- Missing output_suffix (if required)  
+## 11. CLI Behavior
 
----
+The CLI requires:
 
-## 13. Versioning
+- `--input-file`
+- `--module`
 
-Each release of the Prompt Execution Spec corresponds to:
+Optional CLI arguments:
 
-- A compiler version  
-- A template version  
-- A module registry version  
+- `-o` / `--out`: path for writing the Compiled Prompt file
+- `--output-path`: metadata-only override for the recommended final module
+  output path embedded inside the Compiled Prompt
 
-The version of compiler_TEMPLATE_v1.9d and its descendants must match the expected compiler version.
+If `-o` / `--out` is omitted, the CLI writes:
 
+```text
+<input_stem>_compiled_prompt.txt
+```
+
+in the current working directory.
+
+CLI failures print an `Error:` message to standard error and exit with status
+code `1`.
+
+## 12. Output Contract
+
+The compiler output is a Compiled Prompt intended for the GPT Web App upload
+workflow.
+
+The Compiled Prompt asks the model to request one uploaded input text file, then
+run the selected module once on that uploaded file.
+
+The Compiled Prompt includes:
+
+- prompt/module identity
+- author
+- input basename
+- recommended final module output filename
+- recommended final module output path
+- prompt/spec/script versions
+- a run metadata block for the model to include in its final output
+- module-specific EVALUATE instructions
+
+The Compiled Prompt is not the final writing output.
+
+## 13. Archived Specs
+
+Older Prompt Execution Specs may be retained in `specs/archive/` for historical
+context. Archived specs are not active contracts unless explicitly referenced by
+current code, tests, or architecture checks.

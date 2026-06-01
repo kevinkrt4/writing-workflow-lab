@@ -192,9 +192,10 @@ def validate_compiled_prompt(
     output_path: str,
 ) -> None:
     """
-    Spec check for v0.2.3.
+    Validate compiled prompt integrity for v0.2.3.
 
-    Validates that the compiled prompt text conforms to the current spec:
+    This is a runtime integrity check, not full spec governance.
+    Broader contract drift belongs in tests and architecture checks.
 
     - No unresolved placeholders.
     - No leftover EVALUATE_BODY marker.

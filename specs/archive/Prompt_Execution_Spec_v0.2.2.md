@@ -1,5 +1,7 @@
 # Prompt Execution Spec v0.2.2
 
+Archived historical spec. This file is not the active Prompt Compiler contract.
+
 ## 1. Purpose
 Define rules for compiling module prompts using preprocess_prompt.py, TEMPLATE_v1.9d, and prompt_config.yaml.
 
