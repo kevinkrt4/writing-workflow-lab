@@ -56,6 +56,26 @@ def determine_output_filename(
     return f"{basename}_{module_name}.md"
 
 
+def get_module_config(config: Dict[str, Any], module_name: str) -> Dict[str, Any]:
+    modules = config.get("modules", {})
+
+    if module_name not in modules:
+        raise PromptConfigError(f"Module '{module_name}' not found in config.modules")
+
+    return modules[module_name]
+
+
+def get_evaluate_body(module_name: str, module_cfg: Dict[str, Any]) -> str:
+    evaluate_body = module_cfg.get("evaluate_body", "").rstrip()
+
+    if not evaluate_body:
+        raise PromptConfigError(
+            f"modules.{module_name}.evaluate_body is empty in config"
+        )
+
+    return evaluate_body
+
+
 # ============================================================
 # Public API
 # ============================================================
@@ -90,12 +110,7 @@ def build_prompt(
     """
 
     defaults = config.get("defaults", {})
-    modules = config.get("modules", {})
-
-    if module_name not in modules:
-        raise PromptConfigError(f"Module '{module_name}' not found in config.modules")
-
-    module_cfg = modules[module_name]
+    module_cfg = get_module_config(config, module_name)
 
     author = defaults.get("author", "Unknown")
 
@@ -108,11 +123,7 @@ def build_prompt(
     spec_version = defaults.get("spec_version", "0.0.0")
     script_version = defaults.get("script_version", "0.0.0")
 
-    evaluate_body = module_cfg.get("evaluate_body", "").rstrip()
-    if not evaluate_body:
-        raise PromptConfigError(
-            f"modules.{module_name}.evaluate_body is empty in config"
-        )
+    evaluate_body = get_evaluate_body(module_name, module_cfg)
 
     basename = input_file.stem
     output_filename = determine_output_filename(basename, module_name, module_cfg)
