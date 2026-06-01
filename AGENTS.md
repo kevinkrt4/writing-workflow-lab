@@ -18,6 +18,13 @@ Before making changes:
 - Prefer manifest-driven workflows when a manifest exists.
 - Human review is required before significant changes.
 
+## Task Tracking
+
+- Keep `/Users/kevinthompson/GitHub/reference_library/projects/writers_workbench/writers_workbench_backlog.md` current as the durable task-history record for Writers Workbench.
+- Link active work and completed work to the relevant backlog item.
+- Update the backlog when task status changes, especially before ending a work session.
+- Treat memory files as session continuity only, not as the authoritative task record.
+
 ## Default Context
 
 At the start of work in this repository, read and apply:

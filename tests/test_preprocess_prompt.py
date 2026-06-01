@@ -22,6 +22,19 @@ GOLDEN_PROMPT_FILE = (
 )
 
 
+def run_cli(*args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [
+            sys.executable,
+            str(PROJECT_ROOT / "tools" / "preprocess_prompt.py"),
+            *args,
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+
 def test_determine_output_filename_prefers_configured_suffix() -> None:
     filename = determine_output_filename(
         "StarbucksNotebook1",
@@ -59,6 +72,23 @@ def test_build_prompt_rejects_unknown_module() -> None:
         build_prompt(SAMPLE_INPUT_FILE, "missing", config)
 
 
+def test_build_prompt_rejects_empty_evaluate_body() -> None:
+    config = {
+        "defaults": {},
+        "modules": {
+            "empty-module": {
+                "evaluate_body": "",
+            }
+        },
+    }
+
+    with pytest.raises(
+        PromptConfigError,
+        match="modules.empty-module.evaluate_body is empty",
+    ):
+        build_prompt(SAMPLE_INPUT_FILE, "empty-module", config)
+
+
 def test_build_prompt_matches_golden_narrative_prompt() -> None:
     config = load_config(CONFIG_PATH)
 
@@ -73,25 +103,73 @@ def test_build_prompt_matches_golden_narrative_prompt() -> None:
     assert prompt == expected
 
 
+def test_load_config_rejects_missing_config_file(tmp_path: Path) -> None:
+    missing_config = tmp_path / "missing_prompt_config.yaml"
+
+    with pytest.raises(PromptConfigError, match="Config file not found"):
+        load_config(missing_config)
+
+
+def test_load_config_rejects_missing_required_top_level_keys(tmp_path: Path) -> None:
+    invalid_config = tmp_path / "prompt_config.yaml"
+    invalid_config.write_text("defaults: {}\n", encoding="utf-8")
+
+    with pytest.raises(
+        PromptConfigError,
+        match="Config missing required top-level keys: defaults, modules",
+    ):
+        load_config(invalid_config)
+
+
 def test_cli_writes_compiled_prompt(tmp_path: Path) -> None:
     output_file = tmp_path / "compiled_prompt.txt"
 
-    result = subprocess.run(
-        [
-            sys.executable,
-            str(PROJECT_ROOT / "tools" / "preprocess_prompt.py"),
-            "--input-file",
-            str(SAMPLE_INPUT_FILE),
-            "--module",
-            "001-Narrative_Synopsis",
-            "-o",
-            str(output_file),
-        ],
-        check=True,
-        capture_output=True,
-        text=True,
+    result = run_cli(
+        "--input-file",
+        str(SAMPLE_INPUT_FILE),
+        "--module",
+        "001-Narrative_Synopsis",
+        "-o",
+        str(output_file),
     )
 
+    assert result.returncode == 0
     assert result.stdout.startswith("Wrote compiled prompt to:")
     assert output_file.exists()
     assert "Narrative_Synopsis module" in output_file.read_text(encoding="utf-8")
+
+
+def test_cli_rejects_missing_input_file(tmp_path: Path) -> None:
+    missing_input = tmp_path / "missing_notebook.txt"
+    output_file = tmp_path / "compiled_prompt.txt"
+
+    result = run_cli(
+        "--input-file",
+        str(missing_input),
+        "--module",
+        "001-Narrative_Synopsis",
+        "-o",
+        str(output_file),
+    )
+
+    assert result.returncode == 1
+    assert "Error: input file not found:" in result.stderr
+    assert str(missing_input) in result.stderr
+    assert not output_file.exists()
+
+
+def test_cli_rejects_unknown_module(tmp_path: Path) -> None:
+    output_file = tmp_path / "compiled_prompt.txt"
+
+    result = run_cli(
+        "--input-file",
+        str(SAMPLE_INPUT_FILE),
+        "--module",
+        "missing",
+        "-o",
+        str(output_file),
+    )
+
+    assert result.returncode == 1
+    assert "Error: Module 'missing' not found in config.modules" in result.stderr
+    assert not output_file.exists()
